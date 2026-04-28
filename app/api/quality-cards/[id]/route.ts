@@ -10,14 +10,15 @@ async function requireAdmin() {
   return true;
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   try {
     await dbConnect();
+    const { id } = await params;
     const body = await req.json();
-    const doc = await QualityCard.findByIdAndUpdate(params.id, body, { new: true, runValidators: true });
+    const doc = await QualityCard.findByIdAndUpdate(id, body, { new: true, runValidators: true });
     if (!doc) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
     return NextResponse.json({ success: true, data: doc });
   } catch (error: any) {
@@ -25,13 +26,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   if (!(await requireAdmin())) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   try {
     await dbConnect();
-    const doc = await QualityCard.findByIdAndDelete(params.id);
+    const { id } = await params;
+    const doc = await QualityCard.findByIdAndDelete(id);
     if (!doc) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error: any) {
