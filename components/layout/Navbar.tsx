@@ -311,7 +311,6 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const pathname = usePathname();
@@ -344,7 +343,7 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
     return () => document.removeEventListener("mousedown", outside);
   }, []);
 
-  useEffect(() => { setIsOpen(false); setSearchOpen(false); }, [pathname]);
+  useEffect(() => { setIsOpen(false); }, [pathname]);
 
   useEffect(() => {
     const el = headerRef.current;
@@ -461,25 +460,6 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
             {/* ── Right icons ── */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
 
-              {/* Search icon */}
-              <button
-                onClick={() => setSearchOpen((v) => !v)}
-                aria-label="Toggle search"
-                className={`p-2 sm:p-2.5 rounded-xl transition-colors group ${searchOpen ? "bg-brand-primary/10 text-brand-primary" : "hover:bg-brand-bg text-brand-text"}`}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {searchOpen ? (
-                    <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                      <X className="w-5 h-5" />
-                    </motion.span>
-                  ) : (
-                    <motion.span key="s" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                      <Search className="w-5 h-5 group-hover:text-brand-primary transition-colors" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </button>
-
               {/* Wishlist */}
               <Link
                 href="/wishlist"
@@ -591,23 +571,16 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
           </div>
         </div>
 
-        {/* ── Collapsible Search Panel ── */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div
-              key="search-panel"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden border-t border-[#F0EDE8] bg-white"
-            >
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
-                <InlineSearch categories={categories} autoFocus />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* ── Persistent Search Bar Row — collapses on scroll ── */}
+        <motion.div
+          animate={{ height: scrolled ? 0 : "auto", opacity: scrolled ? 0 : 1 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          className="overflow-hidden border-t border-[#F0EDE8] bg-white"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
+            <InlineSearch categories={categories} />
+          </div>
+        </motion.div>
       </header>
 
       {/* ── Mobile Drawer ── */}

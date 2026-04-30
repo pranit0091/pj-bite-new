@@ -120,7 +120,7 @@ export default async function HomePage() {
         qualityClaims: (hs.qualityClaims || []) as string[],
         whyPjBite: (hs.whyPjBite || []).map((x: any) => ({ title: x.title, desc: x.desc, iconName: x.iconName })),
         howItWorks: (hs.howItWorks || []).map((x: any) => ({ step: x.step, label: x.label, desc: x.desc, iconName: x.iconName })),
-        bulkOrder: hs.bulkOrder ? { badge: hs.bulkOrder.badge, title: hs.bulkOrder.title, subtitle: hs.bulkOrder.subtitle } : {},
+        bulkOrder: { badge: hs.bulkOrder?.badge || "", title: hs.bulkOrder?.title || "", subtitle: hs.bulkOrder?.subtitle || "" },
       }
     : null;
 
