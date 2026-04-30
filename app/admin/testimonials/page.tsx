@@ -17,6 +17,66 @@ interface Testimonial {
 
 const EMPTY_FORM = { name: "", location: "", detail: "", text: "", rating: 5, active: true, order: 0 };
 
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(i => (
+        <button key={i} type="button" onClick={() => onChange(i)}>
+          <Star className={`w-5 h-5 ${i <= value ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FormFields({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Name *</label>
+          <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="e.g. Priya S." />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Location</label>
+          <input value={f.location} onChange={e => setF({ ...f, location: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="e.g. Mumbai" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-bold text-brand-text mb-1">Detail Line <span className="font-normal text-brand-text-muted">(e.g. "Mumbai · Almonds Premium")</span></label>
+        <input value={f.detail} onChange={e => setF({ ...f, detail: e.target.value })}
+          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          placeholder="Mumbai · Almonds Premium" />
+      </div>
+      <div>
+        <label className="block text-sm font-bold text-brand-text mb-1">Review Text *</label>
+        <textarea rows={4} value={f.text} onChange={e => setF({ ...f, text: e.target.value })}
+          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+          placeholder="Write the customer review..." />
+      </div>
+      <div className="flex items-center gap-6 flex-wrap">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-2">Rating</label>
+          <StarRating value={f.rating} onChange={v => setF({ ...f, rating: v })} />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
+          <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
+            className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer mt-5">
+          <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
+          <span className="text-sm font-bold text-brand-text">Active</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminTestimonialsPage() {
   const [items, setItems] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +89,7 @@ export default function AdminTestimonialsPage() {
   const fetchItems = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/testimonials");
+      const res = await fetch("/api/testimonials?admin=1");
       const data = await res.json();
       if (res.ok) setItems(data.data || []);
     } catch {
@@ -108,62 +168,6 @@ export default function AdminTestimonialsPage() {
     setEditing(item);
     setEditForm({ name: item.name, location: item.location, detail: item.detail, text: item.text, rating: item.rating, active: item.active, order: item.order });
   };
-
-  const StarRating = ({ value, onChange }: { value: number; onChange: (v: number) => void }) => (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i} type="button" onClick={() => onChange(i)}>
-          <Star className={`w-5 h-5 ${i <= value ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} />
-        </button>
-      ))}
-    </div>
-  );
-
-  const FormFields = ({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Name *</label>
-          <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="e.g. Priya S." />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Location</label>
-          <input value={f.location} onChange={e => setF({ ...f, location: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="e.g. Mumbai" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-brand-text mb-1">Detail Line <span className="font-normal text-brand-text-muted">(e.g. "Mumbai · Almonds Premium")</span></label>
-        <input value={f.detail} onChange={e => setF({ ...f, detail: e.target.value })}
-          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-          placeholder="Mumbai · Almonds Premium" />
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-brand-text mb-1">Review Text *</label>
-        <textarea rows={4} value={f.text} onChange={e => setF({ ...f, text: e.target.value })}
-          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
-          placeholder="Write the customer review..." />
-      </div>
-      <div className="flex items-center gap-6 flex-wrap">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-2">Rating</label>
-          <StarRating value={f.rating} onChange={v => setF({ ...f, rating: v })} />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
-          <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
-            className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer mt-5">
-          <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
-          <span className="text-sm font-bold text-brand-text">Active</span>
-        </label>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

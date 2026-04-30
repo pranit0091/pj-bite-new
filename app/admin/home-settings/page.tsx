@@ -94,7 +94,8 @@ export default function AdminHomeSettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
-      if (!res.ok) throw new Error("Failed to save");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save");
       showToast("Settings saved!", "success");
     } catch (err: any) {
       showError("Save failed", err.message);

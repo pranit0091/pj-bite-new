@@ -1,5 +1,6 @@
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
+import BenefitProduct from "@/models/BenefitProduct";
 import Category from "@/models/Category";
 import { Banner } from "@/models/Banner";
 import FAQ from "@/models/FAQ";
@@ -31,7 +32,7 @@ export default async function HomePage() {
     FAQ.find({ active: true }).sort({ order: 1 }).lean(),
     Testimonial.find({ active: true }).sort({ order: 1 }).lean(),
     QualityCard.find({ active: true }).sort({ order: 1 }).lean(),
-    Product.find({}).sort({ createdAt: -1 }).limit(12).select("name slug tagline claims benefits description images").lean(),
+    BenefitProduct.find({ active: true }).sort({ order: 1, createdAt: 1 }).lean(),
     HomeSettings.findOne().lean(),
   ]);
 
@@ -103,21 +104,23 @@ export default async function HomePage() {
     _id: p._id.toString(),
     name: p.name as string,
     tagline: (p.tagline as string) || "",
-    benefits: (p.claims as string[]) || [],
-    desc: (p.benefits as string) || (p.description as string) || "",
-    image: (p.images as string[])?.[0] || "",
-    bgColor: "bg-amber-50",
+    benefits: (p.benefits as string[]) || [],
+    desc: (p.desc as string) || "",
+    iconType: (p.iconType as string) || "mixed",
+    bgColor: (p.bgColor as string) || "bg-amber-50",
+    image: "",
   }));
 
-  const dbHomeSettings = rawHomeSettings
+  const hs = rawHomeSettings as any;
+  const dbHomeSettings = hs
     ? {
-        trustStrip: (rawHomeSettings as any).trustStrip || [],
-        benefits: (rawHomeSettings as any).benefits || [],
-        purposes: (rawHomeSettings as any).purposes || [],
-        qualityClaims: (rawHomeSettings as any).qualityClaims || [],
-        whyPjBite: (rawHomeSettings as any).whyPjBite || [],
-        howItWorks: (rawHomeSettings as any).howItWorks || [],
-        bulkOrder: (rawHomeSettings as any).bulkOrder || {},
+        trustStrip: (hs.trustStrip || []).map((x: any) => ({ label: x.label, subline: x.subline, iconType: x.iconType })),
+        benefits: (hs.benefits || []).map((x: any) => ({ label: x.label, sub: x.sub, iconName: x.iconName })),
+        purposes: (hs.purposes || []).map((x: any) => ({ label: x.label, iconName: x.iconName, href: x.href })),
+        qualityClaims: (hs.qualityClaims || []) as string[],
+        whyPjBite: (hs.whyPjBite || []).map((x: any) => ({ title: x.title, desc: x.desc, iconName: x.iconName })),
+        howItWorks: (hs.howItWorks || []).map((x: any) => ({ step: x.step, label: x.label, desc: x.desc, iconName: x.iconName })),
+        bulkOrder: hs.bulkOrder ? { badge: hs.bulkOrder.badge, title: hs.bulkOrder.title, subtitle: hs.bulkOrder.subtitle } : {},
       }
     : null;
 

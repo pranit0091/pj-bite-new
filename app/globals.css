@@ -24,6 +24,15 @@
     --background: #FAF7F2;
     --foreground: #1A2010;
   }
+
+  /* Prevent OS dark-mode from rendering white text in form fields */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="color"]),
+  textarea,
+  select {
+    color: inherit;
+    color-scheme: light;
+    caret-color: #000000;
+  }
 }
 
 @layer base {

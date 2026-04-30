@@ -71,11 +71,13 @@ export async function PATCH(req: NextRequest) {
     }
     await dbConnect();
     const body = await req.json();
+    // Strip Mongoose internal fields to prevent version-key conflict on save
+    const { _id, __v, createdAt, updatedAt, ...fields } = body;
     let settings = await HomeSettings.findOne();
     if (!settings) {
-      settings = await HomeSettings.create({ ...DEFAULT_SETTINGS, ...body });
+      settings = await HomeSettings.create({ ...DEFAULT_SETTINGS, ...fields });
     } else {
-      Object.assign(settings, body);
+      Object.assign(settings, fields);
       await settings.save();
     }
     return NextResponse.json({ success: true, data: settings });

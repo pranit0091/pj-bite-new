@@ -368,7 +368,12 @@ function TestimonialsSection({ reviews }: { reviews: any[] }) {
                 <motion.div key={`${page}-${i}`}
                   initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: i * 0.05 }}
                   className="bg-white rounded-2xl border border-[#ECEAE5] p-5 shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] transition-shadow duration-300 flex flex-col justify-between min-h-[120px]">
-                  <p className="text-[13px] text-[#3a3a3a] leading-relaxed font-medium mb-4 flex-1">{r.text}</p>
+                  <p className="text-[13px] text-[#3a3a3a] leading-relaxed font-medium mb-3 flex-1">{r.text}</p>
+                  <div className="flex gap-0.5 mb-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} className={`w-3 h-3 ${star <= r.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"}`} />
+                    ))}
+                  </div>
                   <p className="text-[12px] font-black text-brand-text">
                     {r.name} <span className="text-brand-text-muted font-semibold">- {r.detail || r.location}</span>
                   </p>

@@ -38,6 +38,70 @@ const EMPTY_FORM = {
   bgColor: "bg-amber-50", iconType: "mango", order: 0, active: true,
 };
 
+function ItemForm({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Product Name *</label>
+          <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="e.g. Dried Mango" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Tagline</label>
+          <input value={f.tagline} onChange={e => setF({ ...f, tagline: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="e.g. Tropical Sweetness. Naturally Preserved." />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-bold text-brand-text mb-1">Health Benefits <span className="font-normal text-brand-text-muted">(up to 3)</span></label>
+        <div className="space-y-2">
+          {f.benefits.map((b, i) => (
+            <input key={i} value={b} onChange={e => { const nb = [...f.benefits]; nb[i] = e.target.value; setF({ ...f, benefits: nb }); }}
+              className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+              placeholder={`Benefit ${i + 1}, e.g. Rich in Vitamin A`} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-bold text-brand-text mb-1">Description</label>
+        <textarea rows={3} value={f.desc} onChange={e => setF({ ...f, desc: e.target.value })}
+          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+          placeholder="Short nutritional description..." />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Icon Type</label>
+          <select value={f.iconType} onChange={e => setF({ ...f, iconType: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary capitalize">
+            {ICON_TYPES.map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Background Color</label>
+          <select value={f.bgColor} onChange={e => setF({ ...f, bgColor: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary">
+            {BG_COLORS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
+          <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
+            className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer mt-5">
+          <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
+          <span className="text-sm font-bold text-brand-text">Active</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminBenefitProductsPage() {
   const [items, setItems] = useState<BenefitProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +114,7 @@ export default function AdminBenefitProductsPage() {
   const fetchItems = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/benefit-products");
+      const res = await fetch("/api/benefit-products?admin=1");
       const data = await res.json();
       if (res.ok) setItems(data.data || []);
     } catch {
@@ -136,68 +200,6 @@ export default function AdminBenefitProductsPage() {
     while (benefits.length < 3) benefits.push("");
     setEditForm({ name: item.name, tagline: item.tagline, benefits, desc: item.desc, bgColor: item.bgColor, iconType: item.iconType, order: item.order, active: item.active });
   };
-
-  const ItemForm = ({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Product Name *</label>
-          <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="e.g. Dried Mango" />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Tagline</label>
-          <input value={f.tagline} onChange={e => setF({ ...f, tagline: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="e.g. Tropical Sweetness. Naturally Preserved." />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-brand-text mb-1">Health Benefits <span className="font-normal text-brand-text-muted">(up to 3)</span></label>
-        <div className="space-y-2">
-          {f.benefits.map((b, i) => (
-            <input key={i} value={b} onChange={e => { const nb = [...f.benefits]; nb[i] = e.target.value; setF({ ...f, benefits: nb }); }}
-              className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-              placeholder={`Benefit ${i + 1}, e.g. Rich in Vitamin A`} />
-          ))}
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-brand-text mb-1">Description</label>
-        <textarea rows={3} value={f.desc} onChange={e => setF({ ...f, desc: e.target.value })}
-          className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
-          placeholder="Short nutritional description..." />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Icon Type</label>
-          <select value={f.iconType} onChange={e => setF({ ...f, iconType: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary capitalize">
-            {ICON_TYPES.map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Background Color</label>
-          <select value={f.bgColor} onChange={e => setF({ ...f, bgColor: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary">
-            {BG_COLORS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-          </select>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
-          <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
-            className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer mt-5">
-          <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
-          <span className="text-sm font-bold text-brand-text">Active</span>
-        </label>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

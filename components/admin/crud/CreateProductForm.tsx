@@ -19,19 +19,22 @@ interface Variant {
   stock: number | string;
 }
 
+const DEFAULT_CLAIMS = [
+  "No Added Sugar",
+  "No Preservatives",
+  "Packed with Goodness",
+  "With Natural Farming",
+];
+
 export default function CreateProductForm({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [variants, setVariants] = useState<Variant[]>([]);
-  const [claims, setClaims] = useState<string[]>([
-    "No Added Sugar",
-    "No Preservatives",
-    "Packed with Goodness",
-    "With Natural Farming",
-  ]);
+  const [claims, setClaims] = useState<string[]>(DEFAULT_CLAIMS);
   const [heroHighlights, setHeroHighlights] = useState<string[]>([]);
+  const [uploadKey, setUploadKey] = useState(0);
 
   const handleAddVariant = () => {
     setVariants([...variants, { name: "", price: "", stock: "" }]);
@@ -91,9 +94,10 @@ export default function CreateProductForm({ categories }: { categories: Category
       showToast("Product created successfully!", "success");
       formRef.current?.reset();
       setVariants([]);
-      setClaims(["No Added Sugar", "No Preservatives", "Packed with Goodness", "With Natural Farming"]);
+      setClaims(DEFAULT_CLAIMS);
       setHeroHighlights([]);
-      router.push("/admin/products");
+      setUploadKey((prev) => prev + 1);
+      router.refresh();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       showToast(message, "error");
@@ -229,7 +233,7 @@ export default function CreateProductForm({ categories }: { categories: Category
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Product Images</label>
-        <CloudinaryUpload name="images" maxFiles={5} />
+        <CloudinaryUpload key={uploadKey} name="images" maxFiles={5} />
       </div>
 
       <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
@@ -239,7 +243,7 @@ export default function CreateProductForm({ categories }: { categories: Category
         <p className="text-[11px] text-amber-700/80 mb-3 ml-3">
           Optional. Upload stacked infographics here to replace standard text layout on the product page.
         </p>
-        <CloudinaryUpload name="descriptionImages" maxFiles={10} />
+        <CloudinaryUpload key={`${uploadKey}-desc`} name="descriptionImages" maxFiles={10} />
       </div>
 
       <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl space-y-6">

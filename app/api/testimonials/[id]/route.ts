@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await dbConnect();
     const { id } = await params;
     const body = await req.json();
-    const doc = await Testimonial.findByIdAndUpdate(id, body, { new: true, runValidators: true });
+    const doc = await Testimonial.findByIdAndUpdate(id, { $set: body }, { new: true, runValidators: true });
     if (!doc) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
     return NextResponse.json({ success: true, data: doc });
   } catch (error: any) {

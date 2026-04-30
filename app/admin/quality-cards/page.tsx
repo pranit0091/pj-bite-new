@@ -17,6 +17,50 @@ interface QualityCard {
 
 const EMPTY_FORM = { title: "", desc: "", img: "", alt: "", order: 0, active: true };
 
+function CardForm({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1.5">Card Image *</label>
+          <ImageUpload folder="quality-cards" defaultImage={f.img} onUpload={url => url && setF({ ...f, img: url })} />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Title *</label>
+          <input value={f.title} onChange={e => setF({ ...f, title: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="e.g. In-House R&D Experts" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Description</label>
+          <textarea rows={3} value={f.desc} onChange={e => setF({ ...f, desc: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
+            placeholder="Short description shown below the title..." />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Alt Text</label>
+          <input value={f.alt} onChange={e => setF({ ...f, alt: e.target.value })}
+            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="Image description for accessibility" />
+        </div>
+        <div className="flex items-center gap-4">
+          <div>
+            <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
+            <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
+              className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer mt-5">
+            <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
+            <span className="text-sm font-bold text-brand-text">Active</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminQualityCardsPage() {
   const [items, setItems] = useState<QualityCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +73,7 @@ export default function AdminQualityCardsPage() {
   const fetchItems = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/quality-cards");
+      const res = await fetch("/api/quality-cards?admin=1");
       const data = await res.json();
       if (res.ok) setItems(data.data || []);
     } catch {
@@ -108,48 +152,6 @@ export default function AdminQualityCardsPage() {
     setEditing(item);
     setEditForm({ title: item.title, desc: item.desc, img: item.img, alt: item.alt, order: item.order, active: item.active });
   };
-
-  const CardForm = ({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1.5">Card Image *</label>
-          <ImageUpload folder="quality-cards" defaultImage={f.img} onUpload={url => url && setF({ ...f, img: url })} />
-        </div>
-      </div>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Title *</label>
-          <input value={f.title} onChange={e => setF({ ...f, title: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="e.g. In-House R&D Experts" />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Description</label>
-          <textarea rows={3} value={f.desc} onChange={e => setF({ ...f, desc: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary resize-none"
-            placeholder="Short description shown below the title..." />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-brand-text mb-1">Alt Text</label>
-          <input value={f.alt} onChange={e => setF({ ...f, alt: e.target.value })}
-            className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
-            placeholder="Image description for accessibility" />
-        </div>
-        <div className="flex items-center gap-4">
-          <div>
-            <label className="block text-sm font-bold text-brand-text mb-1">Order</label>
-            <input type="number" min={0} value={f.order} onChange={e => setF({ ...f, order: parseInt(e.target.value) || 0 })}
-              className="w-20 px-3 py-2 border border-[#E8E6E1] rounded-xl text-sm" />
-          </div>
-          <label className="flex items-center gap-2 cursor-pointer mt-5">
-            <input type="checkbox" checked={f.active} onChange={e => setF({ ...f, active: e.target.checked })} className="w-4 h-4 accent-brand-primary" />
-            <span className="text-sm font-bold text-brand-text">Active</span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
