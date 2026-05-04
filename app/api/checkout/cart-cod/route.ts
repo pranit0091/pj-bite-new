@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
 
     const formattedProducts = productsInfo.map((p: any) => ({
       productId: p.productId,
+      variantId: p.variantId || null,
       quantity: p.quantity,
       price: p.price,
       name: p.name,
@@ -59,10 +60,17 @@ export async function POST(req: NextRequest) {
     // ── Stock Management: Decrement after Order ──
     try {
       for (const item of formattedProducts) {
-        await Product.updateOne(
-          { _id: item.productId },
-          { $inc: { stock: -item.quantity } }
-        );
+        if (item.variantId) {
+          await Product.updateOne(
+            { _id: item.productId, "variants._id": item.variantId },
+            { $inc: { "variants.$.stock": -item.quantity } }
+          );
+        } else {
+          await Product.updateOne(
+            { _id: item.productId },
+            { $inc: { stock: -item.quantity } }
+          );
+        }
       }
     } catch (stockError) {
       console.error("[COD_STOCK_DECREMENT_ERROR]", stockError);

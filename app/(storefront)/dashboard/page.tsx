@@ -6,15 +6,20 @@ import Order from "@/models/Order";
 import User from "@/models/User";
 import DashboardClient from "./DashboardClient";
 
-export default async function CustomerDashboardPage() {
+export default async function CustomerDashboardPage({
+  searchParams,
+}: {
+  searchParams?: { order?: string; method?: string };
+}) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session) {
     redirect("/login");
   }
 
   const role = (session.user as any).role;
-  if (role === "SUPERADMIN" || role === "VENDOR") {
+  // Only redirect admins to admin panel when NOT arriving from an order completion
+  if ((role === "SUPERADMIN" || role === "VENDOR") && searchParams?.order !== "placed") {
     redirect("/admin/dashboard");
   }
 

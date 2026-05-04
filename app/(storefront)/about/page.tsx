@@ -78,7 +78,7 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#FAF7F2] min-h-screen overflow-x-hidden">
+    <div className="bg-[#FAF7F2] min-h-screen">
 
       {/* ── HERO ── */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#111A0E]">

@@ -990,9 +990,6 @@ export default function HomeClient({
       {dbQualityCards.length > 0 && (
         <section className="mt-12 bg-[#E1EFEB] py-14 px-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)] border-y border-[#D0E0DC]">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-[#519B98] text-[22px] sm:text-[28px] font-black font-serif text-center mb-10 tracking-tight drop-shadow-sm">
-              Only Perfect Makes The Cut
-            </h2>
             <div className="hidden lg:grid grid-cols-4 gap-6">
               {dbQualityCards.map((card, idx) => (
                 <div key={card._id} className="bg-[#FAF4E8] rounded-2xl overflow-hidden flex flex-col items-center pt-8 px-5 shadow-sm border border-[#EBE3D3] group transition-all duration-300 hover:shadow-md hover:border-[#D5C9B0]">

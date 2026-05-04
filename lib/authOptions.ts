@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import dbConnect from "./mongodb";
 import User from "@/models/User";
+import OTP from "@/models/Otp";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -33,6 +34,60 @@ export const authOptions: NextAuthOptions = {
         if (!isCorrectPassword) {
           throw new Error("Invalid credentials");
         }
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
+      },
+    }),
+    CredentialsProvider({
+      id: "phone-otp",
+      name: "Phone OTP",
+      credentials: {
+        phone: { label: "Phone", type: "text" },
+        otp:   { label: "OTP",   type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.phone || !credentials?.otp) {
+          throw new Error("Phone and OTP are required");
+        }
+
+        await dbConnect();
+
+        const otpRecord = await OTP.findOne({
+          phone: credentials.phone,
+          createdAt: { $gt: new Date(Date.now() - 10 * 60 * 1000) },
+        });
+
+        if (!otpRecord) {
+          throw new Error("OTP expired. Please request a new one.");
+        }
+
+        const isValid = await bcrypt.compare(credentials.otp, otpRecord.otp);
+        if (!isValid) {
+          throw new Error("Incorrect OTP. Please try again.");
+        }
+
+        // Delete the used OTP immediately
+        await OTP.deleteOne({ _id: otpRecord._id });
+
+        // Find or create the user by phone
+        let user = await User.findOne({ phone: credentials.phone });
+        if (!user) {
+          user = await User.create({
+            name: `User ${credentials.phone.slice(-4)}`,
+            email: `phone_${credentials.phone}@pjbite.local`,
+            phone: credentials.phone,
+            role: "CUSTOMER",
+          });
+        }
+
+        if (user.isBlocked) {
+          throw new Error("Your account has been suspended. Please contact support.");
+        }
+
         return {
           id: user._id.toString(),
           email: user.email,

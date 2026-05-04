@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
 
     const formattedProducts = productsInfo.map((p: any) => ({
       productId: p.productId,
+      variantId: p.variantId || null,
       quantity: p.quantity,
       price: p.price,
       name: p.name,
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
     const customerHtml = `
       <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; padding: 20px;">
         <h2 style="color: #27ae60;">Order Confirmation</h2>
-        <p>Hi ${customerDetails.firstName},</p>
+        <p>Hi ${customerDetails.name?.split(' ')[0] || customerDetails.name},</p>
         <p>Thank you for your order! Your payment has been successfully processed.</p>
         <h3>Order details (ID: ${newOrder._id})</h3>
         <table style="width: 100%; border-collapse: collapse;">
@@ -150,7 +151,7 @@ export async function POST(req: NextRequest) {
         <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #c0392b;">New Order Received!</h2>
           <p>Order ID: ${newOrder._id}</p>
-          <p>Customer: ${customerDetails.firstName} ${customerDetails.lastName} (${customerDetails.email})</p>
+          <p>Customer: ${customerDetails.name} (${customerDetails.email})</p>
           <p>Total Amount: ₹${totalAmount}</p>
           <p>Login to dashboard to view full details.</p>
         </div>

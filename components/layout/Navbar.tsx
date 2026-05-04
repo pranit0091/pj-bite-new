@@ -22,6 +22,7 @@ const NAV_LINKS_LEFT = [
 const NAV_LINKS_RIGHT = [
   { name: "Journal",  href: "/blogs",    icon: BookOpen },
   { name: "About Us", href: "/about",    icon: Info },
+  { name: "Careers",  href: "/careers",  icon: Star },
   { name: "Contact",  href: "/contact",  icon: Mail },
 ];
 
@@ -307,7 +308,15 @@ function InlineSearch({ categories = [], autoFocus = false }: { categories?: any
 }
 
 // ── Main Navbar ─────────────────────────────────────────────────────────────
-export default function Navbar({ user, categories = [] }: { user?: any; categories?: any[] }) {
+export default function Navbar({
+  user,
+  categories = [],
+  marqueeItems = MARQUEE_CLAIMS,
+}: {
+  user?: any;
+  categories?: any[];
+  marqueeItems?: string[];
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -373,6 +382,7 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
         }`}
       >
         {/* ── Marquee Claims Strip — collapses on scroll ── */}
+        {marqueeItems.length > 0 && (
         <motion.div
           animate={{ height: scrolled ? 0 : "auto" }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
@@ -380,7 +390,7 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
         >
           <div className="py-2">
             <div className="flex animate-marquee whitespace-nowrap">
-              {[...MARQUEE_CLAIMS, ...MARQUEE_CLAIMS].map((t, i) => (
+              {[...marqueeItems, ...marqueeItems].map((t, i) => (
                 <span key={i} className="mx-6 text-white text-[11px] font-black tracking-widest uppercase">
                   {t} &nbsp;•
                 </span>
@@ -388,6 +398,7 @@ export default function Navbar({ user, categories = [] }: { user?: any; categori
             </div>
           </div>
         </motion.div>
+        )}
 
         {/* ── Main Nav Row ── */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

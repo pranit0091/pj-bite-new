@@ -29,6 +29,7 @@ interface RazorpayOptions {
   handler: (response: RazorpayResponse) => void;
   prefill: { name: string; email: string; contact: string };
   theme: { color: string };
+  modal?: { ondismiss?: () => void };
 }
 
 interface RazorpayInstance {
@@ -89,6 +90,7 @@ export default function CheckoutSlideOver() {
   const fetchSettings = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/settings");
+      if (!res.ok) throw new Error("Failed to load settings");
       const data: CheckoutSettings = await res.json();
       setSettings(data);
     } catch (err) {
@@ -143,6 +145,7 @@ export default function CheckoutSlideOver() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: couponCode, cartValue: activeTotal }),
       });
+      if (!res.ok) throw new Error("Failed to validate coupon");
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setAppliedCoupon(data);
@@ -254,6 +257,7 @@ export default function CheckoutSlideOver() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ items: activeItems, customerDetails, couponCode: appliedCoupon?.code }),
         });
+        if (!cartRes.ok) throw new Error("Cart validation failed. Please try again.");
         const cartData = await cartRes.json();
         if (cartData.error) throw new Error(cartData.error);
 
@@ -268,6 +272,7 @@ export default function CheckoutSlideOver() {
             discountApplied: discountAmount,
           }),
         });
+        if (!codRes.ok) throw new Error("Failed to place COD order. Please try again.");
         const codData = await codRes.json();
         if (!codData.success) throw new Error(codData.error || "Failed to place COD order");
 
@@ -290,6 +295,7 @@ export default function CheckoutSlideOver() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items: activeItems, customerDetails, couponCode: appliedCoupon?.code }),
       });
+      if (!res.ok) throw new Error("Cart validation failed. Please try again.");
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
@@ -301,41 +307,51 @@ export default function CheckoutSlideOver() {
         description: `Secure Checkout — ${activeItems.length} item${activeItems.length > 1 ? "s" : ""}`,
         order_id: data.id,
         handler: async (response: RazorpayResponse) => {
-          const verifyRes = await fetch("/api/checkout/cart-verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              productsInfo: data.products,
-              customerDetails, rawAddress,
-              totalAmount: finalTotal,
-              couponCode: appliedCoupon?.code,
-              discountApplied: discountAmount,
-            }),
-          });
-          const verifyData = await verifyRes.json();
-          if (verifyData.success) {
-            clearCart();
-            setBuyNowItem(null);
-            closeCheckout();
-            router.push("/dashboard?order=placed");
-          } else {
+          try {
+            const verifyRes = await fetch("/api/checkout/cart-verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                productsInfo: data.products,
+                customerDetails, rawAddress,
+                totalAmount: finalTotal,
+                couponCode: appliedCoupon?.code,
+                discountApplied: discountAmount,
+              }),
+            });
+            if (!verifyRes.ok) throw new Error("Verification request failed");
+            const verifyData = await verifyRes.json();
+            if (verifyData.success) {
+              clearCart();
+              setBuyNowItem(null);
+              closeCheckout();
+              router.push("/dashboard?order=placed");
+            } else {
+              showError("Verification Failed", "Payment verification failed. Please contact support.");
+              setLoading(false);
+            }
+          } catch {
             showError("Verification Failed", "Payment verification failed. Please contact support.");
+            setLoading(false);
           }
         },
         prefill: { name: customerDetails.name, email: customerDetails.email, contact: customerDetails.phone },
         theme: { color: "#1E5C2A" },
+        modal: { ondismiss: () => setLoading(false) },
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (res) => showError("Payment Failed", res.error.description));
+      rzp.on("payment.failed", (res) => {
+        showError("Payment Failed", res.error.description);
+        setLoading(false);
+      });
       rzp.open();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Checkout initialization failed";
       showError("Checkout Error", message);
-    } finally {
       setLoading(false);
     }
   };

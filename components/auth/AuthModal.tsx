@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   X, Mail, ArrowRight, ShieldCheck,
   Leaf, Loader2, CheckCircle2, User as UserIcon, KeyRound,
-  AlertCircle,
+  AlertCircle, Smartphone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn, useSession } from "next-auth/react";
@@ -12,15 +12,18 @@ import { useCartStore } from "@/store/useCartStore";
 import { showToast } from "@/lib/swal";
 import { useRouter } from "next/navigation";
 
-type AuthMode = "login" | "register" | "forgot" | "reset" | "verify-register";
+type AuthMode = "login" | "register" | "forgot" | "reset" | "verify-register" | "phone-otp";
+type LoginMethod = "email" | "phone";
 
 export default function AuthModal() {
   const { isAuthModalOpen, closeAuthModal } = useCartStore();
   const router = useRouter();
 
   const [mode, setMode] = useState<AuthMode>("login");
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,8 +36,11 @@ export default function AuthModal() {
     } else {
       document.body.style.overflow = "";
       setMode("login");
+      setLoginMethod("email");
       setError("");
       setIsSuccess(false);
+      setPhone("");
+      setOtp("");
     }
     return () => { document.body.style.overflow = ""; };
   }, [isAuthModalOpen]);
@@ -47,6 +53,7 @@ export default function AuthModal() {
     }
   }, [status, isAuthModalOpen, closeAuthModal]);
 
+  // ── Email/password login ──────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
@@ -60,6 +67,62 @@ export default function AuthModal() {
     }
   };
 
+  // ── Send OTP to phone ─────────────────────────────────────────────────────
+  const handleSendPhoneOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/auth/send-phone-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast("OTP sent to your mobile!", "success");
+      setOtp("");
+      setMode("phone-otp");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to send OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Resend OTP (from phone-otp mode) ─────────────────────────────────────
+  const handleResendPhoneOtp = async () => {
+    setError(""); setOtp("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/send-phone-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      showToast("New OTP sent!", "success");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Verify phone OTP and sign in ──────────────────────────────────────────
+  const handlePhoneOtpLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true); setError("");
+    const res = await signIn("phone-otp", { phone, otp, redirect: false });
+    if (res?.error) {
+      setError("Invalid or expired OTP. Please try again.");
+      setLoading(false);
+    } else {
+      handleSuccess("Welcome!");
+    }
+  };
+
+  // ── Email registration ────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
@@ -85,6 +148,7 @@ export default function AuthModal() {
     }
   };
 
+  // ── Verify email OTP after registration ───────────────────────────────────
   const handleVerifyRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
@@ -110,6 +174,7 @@ export default function AuthModal() {
     }
   };
 
+  // ── Forgot password ───────────────────────────────────────────────────────
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
@@ -130,6 +195,7 @@ export default function AuthModal() {
     }
   };
 
+  // ── Reset password ────────────────────────────────────────────────────────
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
@@ -160,10 +226,13 @@ export default function AuthModal() {
   };
 
   const currentSubmit =
-    mode === "login" ? handleLogin :
-    mode === "register" ? handleRegister :
-    mode === "verify-register" ? handleVerifyRegister :
-    mode === "forgot" ? handleForgotPassword : handleResetPassword;
+    mode === "phone-otp"                           ? handlePhoneOtpLogin :
+    mode === "login" && loginMethod === "phone"    ? handleSendPhoneOtp :
+    mode === "login"                               ? handleLogin :
+    mode === "register"                            ? handleRegister :
+    mode === "verify-register"                     ? handleVerifyRegister :
+    mode === "forgot"                              ? handleForgotPassword :
+                                                     handleResetPassword;
 
   return (
     <AnimatePresence>
@@ -213,6 +282,7 @@ export default function AuthModal() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="relative z-10"
                   >
+                    {/* ── Header ── */}
                     <div className="text-center mb-6 mt-2">
                       <div className="flex flex-col items-center gap-1 mb-2">
                         <div className="flex items-center justify-center gap-1.5 text-brand-primary font-black text-[10px] uppercase tracking-[0.2em] leading-none">
@@ -223,19 +293,21 @@ export default function AuthModal() {
                         </p>
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-black text-brand-text font-serif leading-tight">
-                        {mode === "login" && "Welcome Back"}
-                        {mode === "register" && "Create Account"}
-                        {mode === "forgot" && "Reset Password"}
-                        {mode === "reset" && "Verify OTP"}
+                        {mode === "login"           && "Welcome Back"}
+                        {mode === "register"        && "Create Account"}
+                        {mode === "forgot"          && "Reset Password"}
+                        {mode === "reset"           && "Verify OTP"}
                         {mode === "verify-register" && "Verify Account"}
+                        {mode === "phone-otp"       && "Verify Phone"}
                       </h2>
                     </div>
 
+                    {/* ── Google + method tabs (login & register only) ── */}
                     {(mode === "login" || mode === "register") && (
                       <>
                         <button
                           onClick={() => signIn("google")}
-                          className="w-full h-12 bg-white border border-[#E8E6E1] rounded-xl flex items-center justify-center gap-3 hover:bg-brand-bg hover:border-brand-primary/30 transition-all group mb-5"
+                          className="w-full h-12 bg-white border border-[#E8E6E1] rounded-xl flex items-center justify-center gap-3 hover:bg-brand-bg hover:border-brand-primary/30 transition-all group mb-4"
                         >
                           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -247,17 +319,47 @@ export default function AuthModal() {
                             Continue with Google
                           </span>
                         </button>
-                        <div className="relative py-2">
-                          <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-[#E8E6E1]" />
+
+                        {/* Email | Phone OTP tabs — login only */}
+                        {mode === "login" ? (
+                          <div className="flex items-center gap-1 p-1 bg-brand-bg rounded-xl mb-4">
+                            <button
+                              type="button"
+                              onClick={() => { setLoginMethod("email"); setError(""); }}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                                loginMethod === "email"
+                                  ? "bg-white text-brand-primary shadow-sm"
+                                  : "text-brand-text-muted hover:text-brand-text"
+                              }`}
+                            >
+                              <Mail className="w-3 h-3" /> Email
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setLoginMethod("phone"); setError(""); }}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                                loginMethod === "phone"
+                                  ? "bg-white text-brand-primary shadow-sm"
+                                  : "text-brand-text-muted hover:text-brand-text"
+                              }`}
+                            >
+                              <Smartphone className="w-3 h-3" /> Phone OTP
+                            </button>
                           </div>
-                          <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em]">
-                            <span className="bg-white px-3 text-brand-text-muted/60">OR EMAIL</span>
+                        ) : (
+                          <div className="relative py-2 mb-1">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-[#E8E6E1]" />
+                            </div>
+                            <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em]">
+                              <span className="bg-white px-3 text-brand-text-muted/60">OR EMAIL</span>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </>
                     )}
 
+                    {/* ── Error banner ── */}
                     {error && (
                       <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-bold border border-red-100 flex items-center gap-2 mb-4">
                         <AlertCircle className="w-4 h-4 shrink-0" />
@@ -266,6 +368,8 @@ export default function AuthModal() {
                     )}
 
                     <form onSubmit={currentSubmit} className="space-y-4">
+
+                      {/* Name — register only */}
                       {mode === "register" && (
                         <div className="relative group">
                           <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted/60 group-focus-within:text-brand-primary transition-colors" />
@@ -277,7 +381,8 @@ export default function AuthModal() {
                         </div>
                       )}
 
-                      {(mode === "login" || mode === "register" || mode === "forgot") && (
+                      {/* Email — email login, register, forgot */}
+                      {((mode === "login" && loginMethod === "email") || mode === "register" || mode === "forgot") && (
                         <div className="relative group">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted/60 group-focus-within:text-brand-primary transition-colors" />
                           <input
@@ -288,6 +393,25 @@ export default function AuthModal() {
                         </div>
                       )}
 
+                      {/* Phone number — phone login mode */}
+                      {mode === "login" && loginMethod === "phone" && (
+                        <div className="relative group">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-brand-text-muted/70 group-focus-within:text-brand-primary transition-colors select-none pointer-events-none">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                            className="w-full pl-14 pr-4 py-3.5 bg-brand-bg/50 border border-[#E8E6E1] rounded-xl text-sm font-bold tracking-wider focus:bg-white focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all placeholder:font-medium placeholder:tracking-normal placeholder:text-brand-text-muted/50"
+                            placeholder="10-digit mobile number"
+                            maxLength={10}
+                          />
+                        </div>
+                      )}
+
+                      {/* Email being verified — verify-register and reset */}
                       {(mode === "verify-register" || mode === "reset") && (
                         <div className="bg-brand-bg p-3 rounded-xl border border-brand-primary/10 flex items-center justify-between">
                           <div className="flex flex-col">
@@ -304,18 +428,37 @@ export default function AuthModal() {
                         </div>
                       )}
 
-                      {(mode === "reset" || mode === "verify-register") && (
+                      {/* Phone being verified — phone-otp mode */}
+                      {mode === "phone-otp" && (
+                        <div className="bg-brand-bg p-3 rounded-xl border border-brand-primary/10 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] uppercase tracking-wider font-black text-brand-text-muted">OTP sent to</span>
+                            <span className="text-xs font-bold text-brand-text">+91 {phone}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => { setMode("login"); setLoginMethod("phone"); setError(""); setOtp(""); }}
+                            className="text-[10px] font-black text-brand-primary uppercase hover:underline"
+                          >
+                            Change
+                          </button>
+                        </div>
+                      )}
+
+                      {/* OTP input — email verify, password reset, phone-otp */}
+                      {(mode === "reset" || mode === "verify-register" || mode === "phone-otp") && (
                         <div className="relative group">
                           <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted/60 group-focus-within:text-brand-primary transition-colors" />
                           <input
-                            type="text" required value={otp} onChange={(e) => setOtp(e.target.value)}
+                            type="text" required value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                             className="w-full pl-11 pr-4 py-3.5 bg-brand-bg/50 border border-[#E8E6E1] rounded-xl text-sm font-bold tracking-[0.3em] font-mono focus:bg-white focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all placeholder:font-medium placeholder:tracking-normal placeholder:font-sans placeholder:text-brand-text-muted/50"
                             placeholder="6-Digit OTP" maxLength={6}
                           />
                         </div>
                       )}
 
-                      {(mode === "login" || mode === "register" || mode === "reset") && (
+                      {/* Password — email login, register, reset */}
+                      {((mode === "login" && loginMethod === "email") || mode === "register" || mode === "reset") && (
                         <div className="space-y-1.5">
                           <div className="relative group">
                             <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-text-muted/60 group-focus-within:text-brand-primary transition-colors" />
@@ -326,7 +469,7 @@ export default function AuthModal() {
                               minLength={6}
                             />
                           </div>
-                          {mode === "login" && (
+                          {mode === "login" && loginMethod === "email" && (
                             <div className="flex justify-end">
                               <button
                                 type="button"
@@ -340,22 +483,27 @@ export default function AuthModal() {
                         </div>
                       )}
 
+                      {/* Submit button */}
                       <button
                         type="submit" disabled={loading}
                         className="w-full h-12 bg-brand-primary hover:bg-[#164a20] text-white font-black text-xs rounded-xl transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 uppercase tracking-widest shadow-lg shadow-brand-primary/20"
                       >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                           <>
-                            {mode === "login" ? "Sign In" :
-                              mode === "register" ? "Send OTP" :
-                              mode === "forgot" ? "Send OTP" :
-                              (mode === "verify-register" || mode === "reset") ? "Verify & Proceed" : "Verify"}
+                            {mode === "login" && loginMethod === "email"  && "Sign In"}
+                            {mode === "login" && loginMethod === "phone"  && "Send OTP"}
+                            {mode === "register"                          && "Send OTP"}
+                            {mode === "forgot"                            && "Send OTP"}
+                            {mode === "verify-register"                   && "Verify & Proceed"}
+                            {mode === "reset"                             && "Verify & Proceed"}
+                            {mode === "phone-otp"                         && "Verify & Login"}
                             <ArrowRight className="w-4 h-4" />
                           </>
                         )}
                       </button>
                     </form>
 
+                    {/* ── Footer links ── */}
                     <div className="text-center text-[11px] font-bold text-brand-text-muted mt-6">
                       {mode === "login" && (
                         <p>Don't have an account?{" "}
@@ -375,6 +523,18 @@ export default function AuthModal() {
                       {(mode === "forgot" || mode === "reset") && (
                         <p>Remember your password?{" "}
                           <button type="button" onClick={() => { setMode("login"); setError(""); }} className="text-brand-primary hover:underline ml-1">Back to login</button>
+                        </p>
+                      )}
+                      {mode === "phone-otp" && (
+                        <p>Didn't receive the OTP?{" "}
+                          <button
+                            type="button"
+                            onClick={handleResendPhoneOtp}
+                            disabled={loading}
+                            className="text-brand-primary hover:underline ml-1 disabled:opacity-50"
+                          >
+                            Resend
+                          </button>
                         </p>
                       )}
                     </div>

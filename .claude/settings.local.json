@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(xargs -0 grep -l \"Resource\\\\|Allocation\")",
+      "Bash(git log *)",
+      "Bash(Test-Path \"d:\\\\Projects\\\\pj-bite-new\\\\models\\\\Otp.ts\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\Projects\\\\pj-bite-new\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(head -50)"
+    ]
+  }
+}

@@ -49,6 +49,7 @@
 /* Ensure native pointer is visible even when WebGL canvas is on top */
 html, body {
   cursor: default !important;
+  overflow-x: hidden;
 }
 
 canvas, .pointer-events-none {

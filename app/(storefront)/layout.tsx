@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import dbConnect from "@/lib/mongodb";
 import Category from "@/models/Category";
+import HomeSettings from "@/models/HomeSettings";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import TopProgressBar from "@/components/ui/TopProgressBar";
 import WishlistSyncWrapper from "@/components/layout/WishlistSyncWrapper";
@@ -31,16 +32,24 @@ export default async function StorefrontLayout({
     | undefined;
 
   await dbConnect();
-const rawCategories = await Category.find({})
-  .select("name slug image")
-  .lean();
 
-const categories: CategoryItem[] = rawCategories.map((cat) => ({
-  _id: cat._id.toString(),          // ← converts ObjectId to plain string
-  name: cat.name as string,
-  slug: cat.slug as string,
-  image: (cat.image as string) || "",
-}));
+  const [rawCategories, rawHomeSettings] = await Promise.all([
+    Category.find({}).select("name slug image").lean(),
+    HomeSettings.findOne().lean(),
+  ]);
+
+  const categories: CategoryItem[] = rawCategories.map((cat) => ({
+    _id: cat._id.toString(),
+    name: cat.name as string,
+    slug: cat.slug as string,
+    image: (cat.image as string) || "",
+  }));
+
+  const hs = rawHomeSettings as { qualityClaims?: string[] } | null;
+  const marqueeItems: string[] =
+    hs?.qualityClaims && hs.qualityClaims.length > 0
+      ? hs.qualityClaims
+      : [];
 
   return (
     <>
@@ -50,7 +59,7 @@ const categories: CategoryItem[] = rawCategories.map((cat) => ({
         <TopProgressBar />
       </Suspense>
 
-      <Navbar user={user} categories={categories} />
+      <Navbar user={user} categories={categories} marqueeItems={marqueeItems} />
       <CartSlideOver />
       <CheckoutSlideOver />
       <AuthModal />

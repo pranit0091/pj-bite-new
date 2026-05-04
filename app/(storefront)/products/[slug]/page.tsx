@@ -104,7 +104,7 @@ export default async function ProductDetailPage({
   };
 
   return (
-    <div className="bg-brand-bg relative min-h-screen pb-36 lg:pb-32 font-sans selection:bg-brand-primary/20 overflow-x-hidden">
+    <div className="bg-brand-bg relative min-h-screen pb-36 lg:pb-32 font-sans selection:bg-brand-primary/20">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

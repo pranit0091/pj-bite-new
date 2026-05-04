@@ -50,6 +50,7 @@ export async function POST(
     order.cancellationReason = reason || "Requested by customer";
     order.cancellationRequestedAt = new Date();
     order.deliveryStatus = "CANCELLED";
+    order.orderStatus = "Cancelled";
     order.cancelledAt = new Date();
 
     // If payment was made → auto-initiate refund via Razorpay
