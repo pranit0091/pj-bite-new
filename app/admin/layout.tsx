@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Tags, Package, ShoppingCart, LogOut,
   Bell, Ticket, Menu, X, FileText, Image as ImageIcon, RotateCcw,
   Truck, Store, ChevronRight, HelpCircle, MessageSquare, Shield,
-  Sparkles, Settings2, IndianRupee,
+  Sparkles, Settings2, IndianRupee, Briefcase,
 } from "lucide-react";
 
 type Role = "SUPERADMIN" | "VENDOR" | "CUSTOMER";
@@ -193,6 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Quality Cards",    href: "/admin/quality-cards",    icon: Shield },
     { name: "Benefit Products", href: "/admin/benefit-products", icon: Sparkles },
     { name: "Home Settings",    href: "/admin/home-settings",    icon: Settings2 },
+    { name: "Job Openings",     href: "/admin/job-openings",     icon: Briefcase },
   ];
 
   return (
