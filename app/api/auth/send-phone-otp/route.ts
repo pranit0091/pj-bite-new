@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
-import OTP from "@/models/Otp";
+import OTP from "@/models/OTP";
 import { sendOtpSms } from "@/lib/fast2sms";
 
 function generateOtp(): string {
