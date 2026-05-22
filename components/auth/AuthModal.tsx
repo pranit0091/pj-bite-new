@@ -240,27 +240,29 @@ export default function AuthModal() {
         <>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
             onClick={closeAuthModal}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-brand-text/70 backdrop-blur-[6px] z-[100]"
           />
 
           <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              initial={{ scale: 0.97, opacity: 0, y: 16 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 pointer-events-auto shadow-2xl relative overflow-hidden"
+              exit={{ scale: 0.97, opacity: 0, y: 16 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-white w-full max-w-md rounded-[2rem] p-7 sm:p-10 pointer-events-auto shadow-[0_30px_80px_-20px_rgba(26,32,16,0.35)] relative overflow-hidden border border-[#EAE7DD]"
             >
               <button
                 onClick={closeAuthModal}
                 aria-label="Close"
-                className="absolute top-4 right-4 p-2 rounded-full bg-brand-bg hover:bg-brand-primary/10 text-brand-text-muted hover:text-brand-primary transition-all z-10"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full border border-[#EAE7DD] bg-white hover:bg-brand-bg text-brand-text-muted hover:text-brand-text transition-all z-10 flex items-center justify-center"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
 
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 blur-3xl rounded-full" />
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-gradient-to-br from-brand-primary/12 to-brand-accent/8 blur-2xl rounded-full pointer-events-none" />
+              <div className="absolute -bottom-20 -left-10 w-40 h-40 bg-brand-accent/10 blur-2xl rounded-full pointer-events-none" />
 
               <AnimatePresence mode="wait">
                 {isSuccess ? (
@@ -283,16 +285,13 @@ export default function AuthModal() {
                     className="relative z-10"
                   >
                     {/* ── Header ── */}
-                    <div className="text-center mb-6 mt-2">
-                      <div className="flex flex-col items-center gap-1 mb-2">
-                        <div className="flex items-center justify-center gap-1.5 text-brand-primary font-black text-[10px] uppercase tracking-[0.2em] leading-none">
-                          <Leaf className="w-3.5 h-3.5" /> Nature's Soul Shop
-                        </div>
-                        <p className="text-[9px] font-bold text-brand-text-muted italic opacity-80">
-                          "Every bite carries the essence of real farming"
-                        </p>
+                    <div className="text-center mb-7 mt-1">
+                      <div className="inline-flex items-center justify-center gap-2 text-brand-primary font-black text-[10px] uppercase tracking-[0.35em] leading-none mb-4">
+                        <Leaf className="w-3.5 h-3.5" />
+                        <span>PJ Bite</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-black text-brand-text font-serif leading-tight">
+                      <h2 className="font-serif font-black text-brand-text leading-[1.05] tracking-tight"
+                          style={{ fontSize: "clamp(1.7rem, 4vw, 2.25rem)", letterSpacing: "-0.015em" }}>
                         {mode === "login"           && "Welcome Back"}
                         {mode === "register"        && "Create Account"}
                         {mode === "forgot"          && "Reset Password"}
@@ -300,6 +299,14 @@ export default function AuthModal() {
                         {mode === "verify-register" && "Verify Account"}
                         {mode === "phone-otp"       && "Verify Phone"}
                       </h2>
+                      <p className="text-[12px] text-brand-text-muted font-medium mt-2.5 leading-relaxed">
+                        {mode === "login"           && "Sign in to your PJ Bite account"}
+                        {mode === "register"        && "Join us — fresh dry fruits at your door"}
+                        {mode === "forgot"          && "We'll send you a verification code"}
+                        {mode === "reset"           && "Enter the OTP we just emailed you"}
+                        {mode === "verify-register" && "Confirm your email to finish signing up"}
+                        {mode === "phone-otp"       && "Enter the 6-digit code we sent"}
+                      </p>
                     </div>
 
                     {/* ── Google + method tabs (login & register only) ── */}
@@ -486,7 +493,7 @@ export default function AuthModal() {
                       {/* Submit button */}
                       <button
                         type="submit" disabled={loading}
-                        className="w-full h-12 bg-brand-primary hover:bg-[#164a20] text-white font-black text-xs rounded-xl transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 uppercase tracking-widest shadow-lg shadow-brand-primary/20"
+                        className="group w-full h-13 py-3.5 bg-brand-primary hover:bg-brand-primary-dark text-white font-black text-[11px] rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 mt-3 disabled:opacity-50 uppercase tracking-[0.25em] shadow-[0_10px_24px_-8px_rgba(121,174,111,0.55)] hover:shadow-[0_14px_28px_-8px_rgba(121,174,111,0.7)] hover:-translate-y-0.5"
                       >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                           <>
@@ -497,7 +504,7 @@ export default function AuthModal() {
                             {mode === "verify-register"                   && "Verify & Proceed"}
                             {mode === "reset"                             && "Verify & Proceed"}
                             {mode === "phone-otp"                         && "Verify & Login"}
-                            <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                           </>
                         )}
                       </button>

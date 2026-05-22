@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
-import OTP from "@/models/OTP";
-import { sendOtpSms } from "@/lib/fast2sms";
+import OTP from "@/models/Otp";
+import { sendOtpSms } from "@/lib/startmessaging";
 
 function generateOtp(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();

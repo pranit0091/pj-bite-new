@@ -223,8 +223,8 @@ export default function ProductActionButtons({ product }: ProductActionButtonsPr
               disabled={isOutOfStock}
               className={`h-14 px-6 text-[11px] font-black tracking-widest uppercase rounded-xl transition-all premium-shadow flex items-center justify-center gap-3 group ${
                 isOutOfStock 
-                  ? "hidden" 
-                  : "bg-brand-primary text-white hover:bg-brand-primary-dark hover:-translate-y-0.5"
+                  ? "hidden"
+                  : "bg-brand-accent text-brand-text hover:bg-brand-accent-dark hover:-translate-y-0.5"
               }`}
             >
               Buy Now

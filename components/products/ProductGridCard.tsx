@@ -100,9 +100,9 @@ export default function ProductGridCard({ prod }: ProductGridCardProps) {
         {/* Quick Buy Overlay on Hover */}
         {prod.stock > 0 && (
            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <button 
+              <button
                 onClick={handleBuyNow}
-                className="bg-white text-brand-text text-[10px] font-black px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-brand-primary hover:text-white"
+                className="bg-brand-accent text-brand-text text-[10px] font-black px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-brand-accent-dark"
               >
                 Buy Now
               </button>
@@ -148,9 +148,9 @@ export default function ProductGridCard({ prod }: ProductGridCardProps) {
               >
                <ShoppingBag className="w-3 h-3 group-hover:scale-110 transition-transform" /> Cart
              </button>
-             <button 
+             <button
                 onClick={handleBuyNow}
-                className="flex items-center justify-center gap-1 bg-brand-primary hover:bg-[#164a20] text-white text-[9px] font-black py-2.5 rounded-lg uppercase tracking-widest transition-all shadow-sm hover:shadow-md"
+                className="flex items-center justify-center gap-1 bg-brand-accent hover:bg-brand-accent-dark text-brand-text text-[9px] font-black py-2.5 rounded-lg uppercase tracking-widest transition-all shadow-sm hover:shadow-md"
               >
                Buy Now
              </button>

@@ -113,7 +113,7 @@ export default function PrivacyPolicyPage() {
               <p><strong className="text-brand-text">PJ Bite</strong></p>
               <p>Email: <a href="mailto:infopjbite@gmail.com" className="text-brand-primary hover:underline font-bold">infopjbite@gmail.com</a></p>
               <p>Phone: +91 7744929395</p>
-              <p>Address: 123 Green Valley Estate, Mumbai, India 400001</p>
+              <p>Address: At Post Gaul, Taluka Deoli, District Wardha, Maharashtra, India 442101</p>
             </div>
           </section>
         </div>

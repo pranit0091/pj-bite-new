@@ -78,39 +78,41 @@ const VALUES = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#FAF7F2] min-h-screen">
+    <div className="bg-brand-bg min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#111A0E]">
-        <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: "radial-gradient(circle at 20% 50%, #1E5C2A 0%, transparent 50%), radial-gradient(circle at 80% 20%, #C4951A 0%, transparent 40%)" }} />
+      <section className="relative min-h-[88vh] flex items-center justify-center overflow-hidden bg-[#0E1A0F]">
+        <div className="absolute inset-0 opacity-30 pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle at 18% 55%, #79AE6F 0%, transparent 55%), radial-gradient(circle at 82% 22%, #F4C542 0%, transparent 45%)" }} />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(0,0,0,0.5))] pointer-events-none" />
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-32 pb-24">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-8">
-            <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse" />
-            <span className="text-white/60 text-xs font-bold uppercase tracking-[0.2em]">Our Story · Est. 2024</span>
+          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-sm mb-9">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
+            <span className="text-white/70 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.35em]">Our Story · Est. 2024</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-white font-serif leading-[1.02] tracking-tight mb-8 text-balance">
+          <h1 className="font-serif font-black text-white leading-[1.02] tracking-tight mb-9 text-balance"
+              style={{ fontSize: "clamp(2.5rem, 6vw, 5.5rem)", letterSpacing: "-0.025em" }}>
             Rooted in Soil,<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent to-yellow-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent via-brand-accent-light to-brand-accent">
               Driven by Purpose
             </span>
           </h1>
-          <p className="text-white/60 text-lg sm:text-xl font-medium leading-relaxed max-w-2xl mx-auto mb-12">
+          <p className="text-white/65 text-base sm:text-lg lg:text-xl font-medium leading-relaxed max-w-2xl mx-auto mb-12">
             PJ Bite is building a transparent farm-to-consumer ecosystem — bringing naturally preserved,
             zero-additive dried fruits from the farm directly to you.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/products"
-              className="inline-flex items-center gap-2.5 bg-brand-primary text-white font-black text-sm px-8 py-4 rounded-full hover:bg-[#164a20] transition-colors uppercase tracking-widest shadow-lg shadow-brand-primary/30">
-              Explore Products <ArrowRight className="w-4 h-4" />
+              className="group inline-flex items-center gap-2.5 bg-brand-accent text-brand-text font-black text-[11px] sm:text-xs px-8 py-4 rounded-full hover:bg-brand-accent-dark transition-all duration-300 uppercase tracking-[0.25em] shadow-[0_14px_32px_-10px_rgba(244,197,66,0.6)] hover:-translate-y-0.5">
+              Explore Products <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link href="/contact"
-              className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur text-white font-bold text-sm px-8 py-4 rounded-full border border-white/20 hover:bg-white/15 transition-colors">
+              className="inline-flex items-center gap-2 text-white/85 hover:text-white text-[11px] sm:text-xs font-black uppercase tracking-[0.25em] transition-colors border-b border-white/25 hover:border-white pb-1">
               Get in Touch
             </Link>
           </div>
         </div>
-        <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#FAF7F2] to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-brand-bg to-transparent pointer-events-none" />
       </section>
 
       {/* ── BENTO STATS ── */}

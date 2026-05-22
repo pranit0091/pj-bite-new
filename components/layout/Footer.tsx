@@ -59,11 +59,8 @@ export default function Footer() {
           <div className="col-span-1 lg:col-span-2">
             <h3 className="text-[11px] font-black text-white uppercase tracking-[0.15em] mb-6">Shop Features</h3>
             <ul className="space-y-4 text-sm font-medium text-white/60">
-              <li><Link href="/products" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">All Products</Link></li>
-              <li><Link href="/products?category=nuts" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Premium Nuts</Link></li>
-              <li><Link href="/products?category=dry-fruits" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Dried Fruits</Link></li>
-              <li><Link href="/products?category=seeds" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Healthy Seeds</Link></li>
-              <li><Link href="/products?category=mixes" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Trail Mixes</Link></li>
+              <li><Link href="/products?category=dried-fruits" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Dried Fruits</Link></li>
+              <li><Link href="/products?category=dried-vegetables" className="hover:text-[#a3c96e] hover:translate-x-1 transition-all inline-block">Dried Vegetables</Link></li>
             </ul>
           </div>
 

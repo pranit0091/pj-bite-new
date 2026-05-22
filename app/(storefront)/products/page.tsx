@@ -84,20 +84,35 @@ export default async function ProductsListingPage(props: {
   ];
 
   return (
-    <div className="bg-[#FAF7F2] min-h-screen pb-24 lg:pb-8">
+    <div className="bg-brand-bg min-h-screen pb-24 lg:pb-8">
 
-
-
-      {/* ── Breadcrumb ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex items-center gap-2 text-[10px] sm:text-xs font-medium text-brand-text-muted bg-white/50 px-3 py-1.5 rounded-md w-fit border border-[#E8E6E1]">
-          <Link href="/" className="hover:text-brand-primary">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-brand-text">Products</span>
+      {/* ── Premium Page Header ── */}
+      <section className="relative pt-14 pb-10 sm:pt-20 sm:pb-14 px-4 sm:px-6 lg:px-8 border-b border-[#EAE7DD]/70">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-brand-text-muted mb-6 uppercase tracking-[0.25em]">
+            <Link href="/" className="hover:text-brand-primary transition-colors">Home</Link>
+            <ChevronRight className="w-3 h-3 opacity-50" />
+            <span className="text-brand-text">{activeCat ? activeCat.name : "All Products"}</span>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <p className="text-[10px] sm:text-[11px] font-bold text-brand-primary uppercase tracking-[0.45em] mb-3">
+                {searchParams.q ? "Search results" : activeCat ? "Collection" : "The full edit"}
+              </p>
+              <h1 className="font-serif font-black text-brand-text leading-[1.05] tracking-tight"
+                  style={{ fontSize: "clamp(2rem, 4.2vw, 3.25rem)", letterSpacing: "-0.02em" }}>
+                {searchParams.q ? <>Results for &ldquo;<span className="text-brand-primary">{searchParams.q}</span>&rdquo;</> :
+                 activeCat ? activeCat.name : "All Products"}
+              </h1>
+              <p className="text-sm sm:text-base text-brand-text-muted font-medium mt-3 max-w-xl">
+                {activeCat ? `${products.length} hand-picked products in this collection.` : `${products.length} naturally preserved selections from our farm partners.`}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 pt-8">
 
         {/* ── Main Layout ── */}
         <div className="flex gap-6 items-start mt-2">
@@ -112,17 +127,21 @@ export default async function ProductsListingPage(props: {
           {/* ── PRODUCTS GRID ── */}
           <div className="flex-1 min-w-0">
             {/* Top Toolbar (Grid/List, Count, Sort) */}
-            <div className="flex items-center justify-between bg-white border border-[#E8E6E1] p-2 sm:p-3 rounded-lg mb-6 shadow-sm">
-               <div className="hidden sm:flex items-center gap-4 text-brand-primary px-2">
-                  <Grid3x3 className="w-5 h-5 cursor-pointer" />
-                  <List className="w-5 h-5 text-gray-400 cursor-pointer hover:text-brand-primary transition-colors" />
+            <div className="flex items-center justify-between bg-white border border-[#EAE7DD] px-4 py-3 sm:px-5 sm:py-4 rounded-2xl mb-7 shadow-[0_2px_12px_-4px_rgba(26,32,16,0.06)]">
+               <div className="hidden sm:flex items-center gap-3 text-brand-primary">
+                  <button aria-label="Grid view" className="w-9 h-9 rounded-lg bg-brand-bg flex items-center justify-center text-brand-primary border border-brand-primary/20">
+                    <Grid3x3 className="w-4 h-4" />
+                  </button>
+                  <button aria-label="List view" className="w-9 h-9 rounded-lg hover:bg-brand-bg flex items-center justify-center text-brand-text-muted hover:text-brand-primary transition-colors">
+                    <List className="w-4 h-4" />
+                  </button>
                </div>
-               <div className="text-[10px] sm:text-xs font-bold text-brand-primary text-center sm:text-left flex-1 sm:flex-none">
-                 {products.length} Products
+               <div className="text-[10px] sm:text-[11px] font-black text-brand-text-muted uppercase tracking-[0.3em] text-center sm:text-left flex-1 sm:flex-none">
+                 {products.length} {products.length === 1 ? "Product" : "Products"}
                </div>
-               <div className="flex items-center gap-2 text-[10px] sm:text-xs text-brand-text font-bold px-2">
-                 <span className="hidden sm:block">Sort by:</span>
-                 <select className="border border-[#E8E6E1] rounded-md px-2 py-1.5 sm:px-3 sm:py-2 bg-white outline-none focus:border-brand-primary cursor-pointer text-brand-text">
+               <div className="flex items-center gap-3 text-[11px] text-brand-text font-bold">
+                 <span className="hidden sm:block text-brand-text-muted uppercase tracking-[0.25em] text-[10px]">Sort</span>
+                 <select className="border border-[#EAE7DD] rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 bg-white outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15 cursor-pointer text-brand-text text-[12px] font-bold transition-colors">
                    <option>Alphabetically, A-Z</option>
                    <option>Price, Low to High</option>
                    <option>Price, High to Low</option>
@@ -132,21 +151,23 @@ export default async function ProductsListingPage(props: {
             </div>
 
             {products.length === 0 ? (
-              <div className="text-center py-24 bg-white rounded-lg border border-[#E8E6E1]">
-                <Leaf className="w-10 h-10 text-brand-text-muted/30 mx-auto mb-4" />
-                <h3 className="text-lg font-black text-brand-text font-serif mb-3">No Products Found</h3>
-                <p className="text-sm text-brand-text-muted font-medium mb-6">
-                  {searchParams.q ? `No products match "${searchParams.q}".` : "No products match your filters."}
+              <div className="text-center py-24 bg-white rounded-3xl border border-[#EAE7DD] shadow-[0_4px_24px_-12px_rgba(26,32,16,0.06)]">
+                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-brand-bg flex items-center justify-center border border-brand-primary/20">
+                  <Leaf className="w-7 h-7 text-brand-primary/60" />
+                </div>
+                <h3 className="font-serif font-black text-brand-text text-2xl mb-3 tracking-tight">No products found</h3>
+                <p className="text-sm text-brand-text-muted font-medium mb-7 max-w-sm mx-auto">
+                  {searchParams.q ? <>Nothing matches &ldquo;<span className="text-brand-text font-bold">{searchParams.q}</span>&rdquo; — try a broader search.</> : "Try clearing your filters to see everything."}
                 </p>
                 <Link
                   href="/products"
-                  className="inline-flex items-center gap-2 bg-brand-primary text-white font-black px-6 py-2.5 rounded-full text-xs uppercase tracking-widest hover:bg-[#164a20] transition-colors"
+                  className="inline-flex items-center gap-2 bg-brand-primary text-white font-black px-7 py-3 rounded-full text-[11px] uppercase tracking-[0.25em] hover:bg-brand-primary-dark transition-colors shadow-[0_10px_24px_-8px_rgba(121,174,111,0.5)]"
                 >
-                  <Leaf className="w-3.5 h-3.5" /> View All
+                  View All Products
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
                 {(products as any[]).map((prod: any) => (
                   <ProductGridCard key={prod._id.toString()} prod={prod} />
                 ))}
@@ -155,11 +176,16 @@ export default async function ProductsListingPage(props: {
           </div>
         </div>
 
-        {/* ── FAQ Section (bottom, like Nutraj) ── */}
+        {/* ── FAQ Section ── */}
         {!hasFilters && (
-          <div className="mt-16 max-w-3xl mx-auto">
-            <h2 className="text-base font-black text-brand-text uppercase tracking-widest mb-5 text-center">FAQs</h2>
-            <div className="bg-white rounded-2xl border border-[#E8E6E1] px-5 shadow-sm divide-y divide-[#E8E6E1]">
+          <div className="mt-24 max-w-3xl mx-auto">
+            <div className="flex flex-col items-center text-center mb-10">
+              <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.45em] mb-3">Good to know</p>
+              <h2 className="font-serif font-black text-brand-text leading-tight" style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", letterSpacing: "-0.015em" }}>
+                Frequently Asked
+              </h2>
+            </div>
+            <div className="bg-white rounded-3xl border border-[#EAE7DD] px-7 shadow-[0_4px_24px_-12px_rgba(26,32,16,0.08)] divide-y divide-[#EAE7DD]">
               {[
                 { q: "How many dry fruits should I eat in a day?", a: "A small handful (30g) of mixed dry fruits per day is optimal for most adults." },
                 { q: "Which dry fruit is best for weight loss?", a: "Almonds, walnuts, and dates in moderation can support weight management due to their fiber and protein content." },

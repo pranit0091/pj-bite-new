@@ -14,21 +14,21 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen pt-20 pb-16">
+    <div className="bg-brand-bg min-h-screen pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header */}
-        <div className="text-center mb-12 max-w-2xl mx-auto">
-          <span className="inline-block py-1 px-3 border border-brand-primary/20 bg-brand-primary/5 text-brand-primary text-[10px] tracking-[0.2em] font-black uppercase rounded-full mb-5 relative overflow-hidden group">
-            <span className="relative z-10">Support Line</span>
-            <span className="absolute inset-0 bg-brand-primary/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-          </span>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-brand-text mb-5 tracking-tight font-serif">
-            Get in <span className="text-brand-primary relative">Touch<svg className="absolute -bottom-2 right-0 w-full h-3 text-brand-accent/30" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0,10 Q50,20 100,5" stroke="currentColor" strokeWidth="6" fill="none"/></svg></span>
+        <div className="text-center mb-16 max-w-2xl mx-auto">
+          <p className="text-[10px] sm:text-[11px] font-bold text-brand-primary uppercase tracking-[0.45em] mb-5">
+            Support Line
+          </p>
+          <h1 className="font-serif font-black text-brand-text mb-5 tracking-tight leading-[1.05]"
+              style={{ fontSize: "clamp(2rem, 5vw, 3.75rem)", letterSpacing: "-0.025em" }}>
+            Get in <span className="text-brand-primary">Touch</span>
           </h1>
           <p className="text-sm sm:text-base text-brand-text-muted max-w-xl mx-auto font-medium leading-relaxed">
-            Have a question about our premium ingredients, or interested in bulk orders? 
-            We'd love to hear from you. Drop us a message below!
+            Have a question about our premium ingredients, or interested in bulk orders?
+            We&apos;d love to hear from you — drop us a message below.
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-brand-text text-[15px] mb-0.5">Our Location</h3>
-                    <p className="text-[13px] text-brand-text-muted leading-relaxed font-medium">123 Green Valley Estate,<br/>Mumbai, India 400001</p>
+                    <p className="text-[13px] text-brand-text-muted leading-relaxed font-medium">At Post Gaul, Taluka Deoli,<br/>District Wardha, Maharashtra, India 442101</p>
                   </div>
                 </div>
 

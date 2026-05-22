@@ -30,7 +30,7 @@ export default function LoadingScreen() {
     const scanInterval = 550; // ms per step
     const totalSteps = 6;
     const duration = scanInterval * totalSteps;
-    const interval = 30;
+    const interval = 80; // 12.5 fps — visually smooth, ~3x less CPU than 30ms
     const steps = duration / interval;
     let currentStep = 0;
 

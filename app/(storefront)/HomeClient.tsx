@@ -24,35 +24,18 @@ function DynIcon({ name, className }: { name: string; className?: string }) {
   return <Icon className={className} />;
 }
 
-// ── Trust-strip SVG presets (keyed by iconType) ───────────────────────────
+// ── Trust-strip "no" icon — one common ban/prohibition mark for all claims
+const BAN_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="10" stroke="#DC2626" strokeWidth="2.4" fill="none" />
+    <line x1="5.2" y1="5.2" x2="18.8" y2="18.8" stroke="#DC2626" strokeWidth="2.4" strokeLinecap="round" />
+  </svg>
+);
 const TRUST_SVGS: Record<string, React.ReactNode> = {
-  "no-color": (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
-      <path d="M12 2L15 8H9L12 2Z" fill="#22C55E" stroke="none" />
-      <circle cx="12" cy="14" r="8" stroke="#1a3a20" />
-      <path d="M12 10V18" stroke="#D4A017" />
-      <path d="M8 14H16" stroke="#D4A017" />
-    </svg>
-  ),
-  "no-sugar": (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
-      <path d="M20 7L12 3L4 7V17L12 21L20 17V7Z" stroke="#1a3a20" />
-      <path d="M12 8L12 16M8 12L16 12" stroke="#22C55E" />
-    </svg>
-  ),
-  "no-chemical": (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
-      <path d="M10 2L8 8H16L14 2H10Z" fill="#1a3a20" stroke="none" />
-      <path d="M8 8C5 8 4 12 4 15C4 19 8 22 12 22C16 22 20 19 20 15C20 12 19 8 16 8" stroke="#1a3a20" />
-      <circle cx="12" cy="15" r="3" fill="#22C55E" stroke="none" />
-    </svg>
-  ),
-  "no-flavor": (
-    <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" stroke="currentColor">
-      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#1a3a20" />
-      <path d="M7 12L10 15L17 8" stroke="#22C55E" />
-    </svg>
-  ),
+  "no-color":    BAN_ICON,
+  "no-sugar":    BAN_ICON,
+  "no-chemical": BAN_ICON,
+  "no-flavor":   BAN_ICON,
 };
 
 // ── Benefit-product SVG presets (keyed by iconType) ───────────────────────
@@ -210,17 +193,25 @@ function ProductCard({ product }: { product: any }) {
   const originalPrice = product.originalPrice || Math.round(product.price * 1.2);
   const discount = Math.round(((originalPrice - product.price) / originalPrice) * 100);
   const productId = product._id?.toString() || product.id || "";
+  const isOutOfStock = typeof product.stock === "number" && product.stock <= 0;
 
   return (
-    <div className="group bg-white rounded-[1.25rem] border border-gray-100 hover:border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-black/[0.03] transition-all duration-300 flex flex-col h-full relative">
+    <div className="group bg-white rounded-[1.5rem] border border-[#EAE7DD] hover:border-brand-primary/30 overflow-hidden shadow-[0_1px_2px_rgba(26,32,16,0.03),0_8px_24px_-16px_rgba(121,174,111,0.14)] hover:shadow-[0_4px_8px_rgba(26,32,16,0.04),0_24px_48px_-20px_rgba(121,174,111,0.25)] hover:-translate-y-1 transition-all duration-500 flex flex-col h-full relative">
       <div className="relative">
+        {isOutOfStock && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+            <span className="bg-brand-text/85 backdrop-blur-sm text-white text-[10px] sm:text-xs font-black px-4 py-2 rounded-full uppercase tracking-[0.25em] shadow-lg">
+              Out of Stock
+            </span>
+          </div>
+        )}
         <div className="absolute top-2.5 left-2.5 z-20 flex flex-col gap-1.5 items-start">
           {discount > 0 && (
             <span className="bg-red-500/90 backdrop-blur-sm text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full uppercase shadow-sm">
               {discount}% OFF
             </span>
           )}
-          {product.tag && (
+          {product.tag && !isOutOfStock && (
             <span className={`backdrop-blur-sm text-white text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-full uppercase shadow-sm flex items-center gap-1 ${product.tag === "New" ? "bg-[#1a3a20]" : "bg-brand-primary/90"}`}>
               {product.tag === "New" && <Sparkles className="w-2 h-2" />} {product.tag}
             </span>
@@ -232,41 +223,48 @@ function ProductCard({ product }: { product: any }) {
           </div>
         )}
         <Link href={`/products/${product.slug}`}>
-          <div className="aspect-[4/3] bg-gradient-to-b from-[#fcfaf8] to-[#f5f2ec] relative overflow-hidden">
+          <div className="aspect-[4/3] bg-gradient-to-b from-brand-bg/60 to-brand-bg relative overflow-hidden">
             <Image src={img} alt={product.name} fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-4 group-hover:scale-110 transition-transform duration-700 ease-out will-change-transform drop-shadow-sm" />
+              className="object-contain p-5 group-hover:scale-110 transition-transform duration-700 ease-out will-change-transform" />
           </div>
         </Link>
       </div>
-      <div className="p-3 sm:p-4 flex flex-col flex-1">
-        <p className="text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">PJ BITE</p>
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <p className="text-[9px] sm:text-[10px] font-black text-brand-text-muted uppercase tracking-[0.3em] mb-2">PJ Bite</p>
         <Link href={`/products/${product.slug}`}>
-          <h3 className="text-xs sm:text-sm font-bold text-gray-800 line-clamp-2 leading-snug hover:text-brand-primary transition-colors mb-2" title={product.name}>
+          <h3 className="font-serif font-black text-brand-text text-[15px] sm:text-[17px] line-clamp-2 leading-[1.2] tracking-tight hover:text-brand-primary transition-colors mb-3" title={product.name}>
             {product.name}
           </h3>
         </Link>
-        <div className="flex items-center gap-0.5 mb-3">
+        <div className="flex items-center gap-0.5 mb-4">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400 text-amber-400" />
+            <Star key={i} className="w-3 h-3 fill-brand-accent text-brand-accent" />
           ))}
-          <span className="text-[9px] text-gray-500 font-bold ml-1">(12)</span>
+          <span className="text-[10px] text-brand-text-muted font-bold ml-1.5">(12)</span>
         </div>
-        <div className="mt-auto flex flex-col gap-2">
-          <div className="flex items-baseline gap-1.5 text-gray-900">
-            <span className="text-sm sm:text-base font-black">₹{product.price}</span>
-            {discount > 0 && <span className="text-[10px] text-gray-500 line-through">₹{originalPrice}</span>}
+        <div className="mt-auto flex flex-col gap-3">
+          <div className="flex items-baseline gap-2 text-brand-text">
+            <span className="text-lg sm:text-xl font-black tracking-tight">₹{product.price}</span>
+            {discount > 0 && <span className="text-[11px] text-brand-text-muted line-through">₹{originalPrice}</span>}
           </div>
-          <div className="flex gap-1.5">
-            <button onClick={handleAdd}
-              className={`flex-1 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black rounded-lg uppercase tracking-widest transition-all duration-200 shadow-sm border ${adding ? "bg-brand-accent text-white border-brand-accent" : "bg-white text-brand-primary border-brand-primary hover:bg-brand-primary hover:text-white"}`}>
-              {adding ? "Added ✓" : "Add Cart"}
+          {isOutOfStock ? (
+            <button disabled
+              className="w-full py-2.5 text-[10px] font-black rounded-xl uppercase tracking-[0.25em] bg-brand-bg text-brand-text-muted border border-[#EAE7DD] cursor-not-allowed">
+              Out of Stock
             </button>
-            <button onClick={handleBuyNow}
-              className="flex-1 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black rounded-lg uppercase tracking-widest bg-brand-primary text-white hover:bg-[#164a20] transition-all duration-200 shadow-sm">
-              Buy Now
-            </button>
-          </div>
+          ) : (
+            <div className="flex gap-2">
+              <button onClick={handleAdd}
+                className={`flex-1 py-2.5 text-[10px] font-black rounded-xl uppercase tracking-[0.2em] transition-all duration-300 border ${adding ? "bg-brand-primary text-white border-brand-primary" : "bg-white text-brand-text border-brand-text/30 hover:bg-brand-text hover:text-white hover:border-brand-text"}`}>
+                {adding ? "Added ✓" : "Add Cart"}
+              </button>
+              <button onClick={handleBuyNow}
+                className="flex-1 py-2.5 text-[10px] font-black rounded-xl uppercase tracking-[0.2em] bg-brand-accent text-brand-text hover:bg-brand-accent-dark transition-all duration-300 shadow-[0_4px_14px_-4px_rgba(244,197,66,0.5)]">
+                Buy Now
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -319,22 +317,6 @@ function VerticalQualitySlider({ cards }: { cards: any[] }) {
   );
 }
 
-// ── CategoryCircle ─────────────────────────────────────────────────────────
-function CategoryCircle({ cat }: { cat: any }) {
-  return (
-    <Link href={`/products?category=${cat.slug}`} className="flex flex-col items-center gap-3 shrink-0 group outline-none">
-      <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#fcfbf9] border border-[#E8E6E1] group-hover:border-brand-primary/50 group-hover:bg-white shadow-[0_4px_15px_rgba(0,0,0,0.02)] group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.08)] transition-all duration-500 flex items-center justify-center group-hover:-translate-y-1.5 ring-4 ring-transparent group-hover:ring-brand-primary/5 overflow-hidden">
-        {cat.image ? (
-          <Image src={cat.image} alt={cat.name} width={64} height={64} className="w-12 h-12 sm:w-16 sm:h-16 object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
-        ) : (
-          <Leaf className="w-8 h-8 text-brand-primary/30 group-hover:scale-110 group-hover:text-brand-primary transition-all duration-500" strokeWidth={1.5} />
-        )}
-      </div>
-      <span className="text-[11px] sm:text-[12px] font-black text-brand-text uppercase tracking-widest text-center leading-tight max-w-[85px] group-hover:text-brand-primary transition-colors">{cat.name}</span>
-    </Link>
-  );
-}
-
 // ── TestimonialsSection ─────────────────────────────────────────────────────
 function TestimonialsSection({ reviews }: { reviews: any[] }) {
   const [page, setPage] = useState(0);
@@ -345,11 +327,12 @@ function TestimonialsSection({ reviews }: { reviews: any[] }) {
   if (reviews.length === 0) return null;
 
   return (
-    <section className="mt-12 px-4 pb-2">
+    <section className="mt-20 sm:mt-28 px-4 pb-4">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-[26px] sm:text-[34px] font-black text-brand-primary font-serif text-center mb-8 tracking-tight">
-          500+ Happy Clients
-        </h2>
+        <div className="flex flex-col items-center text-center mb-12">
+          <p className="pj-eyebrow pj-eyebrow--center mb-4">Loved by 500+</p>
+          <h2 className="pj-heading">What our customers say</h2>
+        </div>
         <div className="flex flex-col lg:flex-row gap-5 items-stretch">
           <div className="relative w-full lg:w-[260px] shrink-0 rounded-2xl overflow-hidden min-h-[220px] lg:min-h-0 shadow-md">
             <Image src="https://images.unsplash.com/photo-1599599810769-bcde5a160d32?q=80&w=600&auto=format&fit=crop"
@@ -357,7 +340,7 @@ function TestimonialsSection({ reviews }: { reviews: any[] }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <p className="text-white text-lg font-black leading-tight mb-1">Have this daily.<br /><span className="text-brand-accent">Double your energy.</span></p>
-              <Link href="/products" className="inline-flex items-center gap-1.5 mt-3 bg-brand-accent text-white text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-lg hover:bg-[#c49015] transition-colors">
+              <Link href="/products" className="inline-flex items-center gap-1.5 mt-3 bg-brand-accent text-brand-text text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-lg hover:bg-brand-accent-dark transition-colors">
                 Shop Now <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -404,94 +387,64 @@ function TestimonialsSection({ reviews }: { reviews: any[] }) {
   );
 }
 
-// ── NewArrivalAddBtn ────────────────────────────────────────────────────────
-function NewArrivalAddBtn({ product }: { product: any }) {
-  const { addItem } = useCartStore((s) => s);
-  const [adding, setAdding] = useState(false);
+// ── ShopByCategoryGrid ─────────────────────────────────────────────────────
+// Per PDF spec: only two categories — Dried Fruits and Dried Vegetables.
+function ShopByCategoryGrid({ categories }: { categories: any[] }) {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+  const pick = (needle: string) =>
+    categories.find((c) => norm(c.name || "").includes(needle) || norm(c.slug || "").includes(needle));
 
-  const handle = () => {
-    setAdding(true);
-    addItem({
-      id: product._id?.toString() || product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images?.[0] || product.image || "",
-      vendorId: product.vendorId?.toString() || "",
-    });
-    showSuccess("Added to Cart!", `${product.name} is now in your cart.`);
-    setTimeout(() => setAdding(false), 900);
-  };
+  const driedFruits = pick("driedfruit") || pick("dryfruit");
+  const driedVeg   = pick("driedveg")   || pick("dryveg") || pick("vegetable");
+
+  const fallback = (name: string, slug: string, image?: string) => ({ name, slug, image });
+  const items = [
+    driedFruits || fallback("Dried Fruits", "dried-fruits"),
+    driedVeg    || fallback("Dried Vegetables", "dried-vegetables"),
+  ];
 
   return (
-    <button onClick={handle}
-      className={`w-full py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all duration-200 border ${adding ? "bg-brand-primary text-white border-brand-primary" : "bg-white text-brand-primary border-brand-primary hover:bg-brand-primary hover:text-white"}`}>
-      {adding ? "Added ✓" : "+ Add to Cart"}
-    </button>
-  );
-}
-
-// ── BrandCarousel ───────────────────────────────────────────────────────────
-function BrandCarousel({ categories }: { categories: any[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const posRef = useRef(0);
-  const pausedRef = useRef(false);
-  const rafRef = useRef<number>(0);
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const [windowWidth, setWindowWidth] = useState(0);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const SPEED = 0.8;
-
-  const baseItems = categories.map((c) => ({ ...c, id: c._id || Math.random(), isAll: false }));
-  const allItems = baseItems.length > 0 ? [...baseItems, ...baseItems, ...baseItems, ...baseItems, ...baseItems, ...baseItems] : [];
-
-  useEffect(() => {
-    setWindowWidth(window.innerWidth);
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    const track = trackRef.current;
-    if (!track) return;
-    const trackWidth = track.scrollWidth / (allItems.length / baseItems.length);
-    const tick = () => {
-      if (!pausedRef.current && track && !isDraggingRef.current) posRef.current += SPEED;
-      if (trackWidth > 0) {
-        while (posRef.current < 0) posRef.current += trackWidth;
-        while (posRef.current >= trackWidth) posRef.current -= trackWidth;
-      }
-      if (track) track.style.transform = `translateX(-${posRef.current}px)`;
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => { window.removeEventListener("resize", handleResize); cancelAnimationFrame(rafRef.current); };
-  }, [baseItems.length, allItems.length]);
-
-  const handlePointerDown = (e: React.PointerEvent) => { isDraggingRef.current = true; startXRef.current = e.clientX; pausedRef.current = true; };
-  const handlePointerMove = (e: React.PointerEvent) => { if (!isDraggingRef.current) return; posRef.current += startXRef.current - e.clientX; startXRef.current = e.clientX; };
-  const handlePointerUp = () => { isDraggingRef.current = false; pausedRef.current = false; };
-
-  if (allItems.length === 0) return null;
-
-  return (
-    <section className="mt-12 overflow-hidden py-12 relative bg-gradient-to-b from-transparent via-[#FAF9F6]/30 to-transparent group">
-      <div className="px-4 max-w-7xl mx-auto mb-2 flex flex-col items-center text-center">
-        <p className="text-[10px] font-black text-brand-primary/60 uppercase tracking-[0.4em] mb-1">Discover</p>
-        <h2 className="text-[26px] sm:text-[34px] font-black text-brand-text uppercase tracking-widest font-serif leading-none">Shop by Category</h2>
-      </div>
-      <button onClick={() => { posRef.current -= 200; }} className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/80 hover:bg-white backdrop-blur-md border border-gray-200 shadow-[0_4px_15px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center text-brand-primary transition-all duration-300 hover:scale-110" aria-label="Scroll left">
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-      </button>
-      <button onClick={() => { posRef.current += 200; }} className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/80 hover:bg-white backdrop-blur-md border border-gray-200 shadow-[0_4px_15px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center text-brand-primary transition-all duration-300 hover:scale-110" aria-label="Scroll right">
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-      </button>
-      <div ref={wrapRef} className="relative w-full min-h-[180px] sm:min-h-[280px] mt-2 flex items-center justify-center cursor-grab active:cursor-grabbing select-none touch-pan-y"
-        onMouseEnter={() => { pausedRef.current = true; }} onMouseLeave={() => { pausedRef.current = false; setHoveredIdx(null); handlePointerUp(); }}
-        onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
-        <div ref={trackRef} className="flex gap-6 sm:gap-12 will-change-transform absolute left-0 transition-transform duration-75 ease-out" style={{ width: "max-content", touchAction: "none" }}>
-          {allItems.map((item, idx) => (
-            <div key={`${item.id}-${idx}`} className="relative flex flex-col items-center shrink-0" onMouseEnter={() => setHoveredIdx(idx)}>
-              <ArcItem item={item} idx={idx} posRef={posRef} wrapRef={wrapRef} isHovered={hoveredIdx === idx} windowWidth={windowWidth} />
-            </div>
+    <section className="mt-20 sm:mt-28 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col items-center text-center mb-12">
+          <p className="pj-eyebrow pj-eyebrow--center mb-4">Discover</p>
+          <h2 className="pj-heading">Shop by Category</h2>
+          <p className="pj-subhead mt-4">
+            Two simple, honest selections — sun-dried fruits and farm-fresh dried vegetables. Nothing else.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+          {items.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/products?category=${cat.slug}`}
+              className="group relative rounded-3xl overflow-hidden bg-brand-bg border border-[#E8E6E1] shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden bg-brand-bg">
+                {cat.image ? (
+                  <Image
+                    src={cat.image}
+                    alt={cat.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-primary/10 to-brand-accent/10">
+                    <Leaf className="w-20 h-20 text-brand-primary/40" strokeWidth={1.5} />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6 flex items-end justify-between gap-4">
+                <h3 className="text-white text-lg sm:text-2xl font-black font-serif tracking-tight drop-shadow-md">
+                  {cat.name}
+                </h3>
+                <span className="inline-flex items-center gap-1.5 bg-brand-accent text-brand-text text-[10px] sm:text-[11px] font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-lg group-hover:bg-brand-accent-dark transition-colors">
+                  Shop <ArrowRight className="w-3 h-3" />
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -499,120 +452,44 @@ function BrandCarousel({ categories }: { categories: any[] }) {
   );
 }
 
-function ArcItem({ item, idx, posRef, wrapRef, isHovered, windowWidth }: any) {
-  const itemRef = useRef<HTMLAnchorElement>(null);
-  const [transform, setTransform] = useState({ y: 0, scale: 1, opacity: 1 });
-
-  useEffect(() => {
-    let raf: number;
-    const updateMotion = () => {
-      const el = itemRef.current;
-      const wrap = wrapRef.current;
-      if (!el || !wrap) return;
-      const rect = el.getBoundingClientRect();
-      const wrapRect = wrap.getBoundingClientRect();
-      const dist = (rect.left + rect.width / 2 - (wrapRect.left + wrapRect.width / 2)) / (windowWidth / 1.5);
-      const absDist = Math.abs(dist);
-      const arcDepth = windowWidth < 640 ? 60 : 120;
-      const y = Math.min(absDist * absDist * arcDepth, arcDepth + 50);
-      const scaleBase = windowWidth < 640 ? 0.85 : 1;
-      const scale = scaleBase + Math.max(0, 1 - absDist * 1.5) * 0.25;
-      const opacity = Math.max(0, 1 - absDist * absDist * 0.8);
-      setTransform({ y, scale, opacity });
-      raf = requestAnimationFrame(updateMotion);
-    };
-    raf = requestAnimationFrame(updateMotion);
-    return () => cancelAnimationFrame(raf);
-  }, [windowWidth]);
-
-  return (
-    <Link ref={itemRef} href={`/products?category=${item.slug}`} className="flex flex-col items-center gap-5 transition-transform duration-300 ease-out"
-      style={{ transform: `translateY(${transform.y}px) scale(${transform.scale + (isHovered ? 0.1 : 0)})`, opacity: transform.opacity, zIndex: Math.round(100 - transform.y) }}>
-      <div className="relative group">
-        <div className={`absolute -inset-4 rounded-full transition-all duration-700 blur-xl opacity-0 group-hover:opacity-60 bg-brand-primary/20 ${transform.scale > 1.15 ? "opacity-40" : ""}`} />
-        <div className={`absolute -inset-2 rounded-full border-2 border-brand-primary/10 transition-all duration-500 scale-90 group-hover:scale-100 group-hover:border-brand-primary/40 ${transform.scale > 1.2 ? "border-brand-primary/30 scale-100" : ""}`} />
-        <div className="relative w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-white border border-[#E8E6E1] shadow-[0_4px_10px_rgba(0,0,0,0.03)] group-hover:shadow-[0_10px_20px_rgba(0,0,0,0.06)] flex items-center justify-center transition-all duration-500 overflow-hidden">
-          {item.image ? (
-            <Image src={item.image} alt={item.name} width={48} height={48} className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-500" />
-          ) : (
-            <Leaf className="w-10 h-10 text-brand-primary/30" strokeWidth={1.5} />
-          )}
-        </div>
-      </div>
-      <div className="w-[80px] sm:w-[120px] px-1">
-        <span className={`block text-[8px] sm:text-[9.5px] font-black text-brand-text uppercase tracking-[0.12em] text-center transition-all duration-300 leading-tight ${isHovered || transform.scale > 1.2 ? "text-brand-primary scale-105" : "opacity-60"}`}>
-          {item.name}
-        </span>
-      </div>
-    </Link>
-  );
-}
-
 // ── BenefitsCarousel ────────────────────────────────────────────────────────
+// Performance note: this used to be a 60fps requestAnimationFrame loop that
+// repainted translateX every frame even off-screen. Replaced with a CSS
+// `animate-marquee-slow` keyframe — handed off to the GPU compositor for free.
 function BenefitsCarousel({ items }: { items: any[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const posRef = useRef(0);
-  const pausedRef = useRef(false);
-  const rafRef = useRef<number>(0);
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const SPEED = 0.55;
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const halfWidth = track.scrollWidth / 2;
-    const tick = () => {
-      if (!pausedRef.current && track && !isDraggingRef.current) posRef.current += SPEED;
-      if (halfWidth > 0) {
-        while (posRef.current < 0) posRef.current += halfWidth;
-        while (posRef.current >= halfWidth) posRef.current -= halfWidth;
-      }
-      if (track) track.style.transform = `translateX(-${posRef.current}px)`;
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  const handlePointerDown = (e: React.PointerEvent) => { isDraggingRef.current = true; startXRef.current = e.clientX; pausedRef.current = true; };
-  const handlePointerMove = (e: React.PointerEvent) => { if (!isDraggingRef.current) return; posRef.current += startXRef.current - e.clientX; startXRef.current = e.clientX; };
-  const handlePointerUp = () => { isDraggingRef.current = false; pausedRef.current = false; };
+  const [paused, setPaused] = useState(false);
 
   if (items.length === 0) return null;
-  const allItems = [...items, ...items, ...items];
+  // Duplicate once for seamless loop — CSS keyframes go 0% → -50%
+  const allItems = [...items, ...items];
 
   return (
-    <section className="mt-16 overflow-hidden bg-[#FAF7F2] py-8 relative group/benefits">
-      <div className="px-4 max-w-7xl mx-auto mb-10 text-center">
-        <p className="text-[10px] font-black text-brand-primary/60 uppercase tracking-[0.3em] mb-2">Immunity & Vitality</p>
-        <h2 className="text-[24px] sm:text-[32px] font-black text-brand-text uppercase tracking-widest font-serif leading-tight">Nature's Pick: Health Benefits</h2>
+    <section className="mt-20 sm:mt-28 overflow-hidden bg-gradient-to-b from-brand-bg via-white to-brand-bg py-14 relative">
+      <div className="px-4 max-w-7xl mx-auto mb-14 text-center">
+        <p className="pj-eyebrow pj-eyebrow--center mb-4">Immunity & Vitality</p>
+        <h2 className="pj-heading">Nature&apos;s Pick</h2>
+        <p className="pj-subhead mt-4 mx-auto">Functional ingredients backed by tradition and science.</p>
       </div>
-      <button onClick={() => { posRef.current -= 340; }} className="absolute left-2 sm:left-6 top-[60%] -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/80 hover:bg-white backdrop-blur-md border border-gray-200 shadow-[0_4px_15px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center text-brand-primary transition-all duration-300 hover:scale-110" aria-label="Scroll left">
-        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-      </button>
-      <button onClick={() => { posRef.current += 340; }} className="absolute right-2 sm:right-6 top-[60%] -translate-y-1/2 z-30 w-10 h-10 sm:w-12 sm:h-12 bg-white/80 hover:bg-white backdrop-blur-md border border-gray-200 shadow-[0_4px_15px_rgba(0,0,0,0.05)] rounded-full flex items-center justify-center text-brand-primary transition-all duration-300 hover:scale-110" aria-label="Scroll right">
-        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-      </button>
       <div className="relative">
-        <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-[#FAF7F2] to-transparent pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-[#FAF7F2] to-transparent pointer-events-none" />
-        <div className="overflow-hidden cursor-grab active:cursor-grabbing pb-10 select-none touch-pan-y"
-          onMouseEnter={() => { pausedRef.current = true; }} onMouseLeave={() => { pausedRef.current = false; handlePointerUp(); }}
-          onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
-          <div ref={trackRef} className="flex gap-6 will-change-transform px-4 transition-transform duration-75 ease-out" style={{ width: "max-content", touchAction: "none" }}>
+        <div className="absolute left-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-r from-brand-bg to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-20 z-10 bg-gradient-to-l from-brand-bg to-transparent pointer-events-none" />
+        <div className="overflow-hidden pb-10"
+          onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+          <div
+            className="flex gap-6 px-4 animate-marquee-slow"
+            style={{ width: "max-content", animationPlayState: paused ? "paused" : "running" }}
+          >
             {allItems.map((item, idx) => (
               <div key={`${item._id || item.name}-${idx}`}
-                className="w-[280px] sm:w-[320px] bg-white rounded-[2.5rem] border border-[#E8E6E1] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 group flex flex-col items-start gap-5 pointer-events-none">
-                <div className={`w-16 h-16 rounded-3xl ${item.bgColor || "bg-amber-50"} flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-all duration-500`}>
+                className="w-[280px] sm:w-[320px] bg-white rounded-[2.5rem] border border-[#EAE7DD] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.08)] transition-shadow duration-500 group flex flex-col items-start gap-5">
+                <div className={`w-16 h-16 rounded-3xl ${item.bgColor || "bg-amber-50"} flex items-center justify-center relative overflow-hidden`}>
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill sizes="64px" className="object-contain p-2" />
                   ) : (
-                    <motion.div whileHover={{ scale: 1.15, rotate: [0, 5, -5, 0] }} transition={{ duration: 0.3 }} className="w-10 h-10 flex items-center justify-center relative z-10">
+                    <div className="w-10 h-10 flex items-center justify-center relative z-10">
                       {BENEFIT_SVGS[item.iconType] || BENEFIT_SVGS.mixed}
-                    </motion.div>
+                    </div>
                   )}
-                  <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
                 </div>
                 <div className="w-full">
                   <h3 className="text-lg font-black text-brand-text mb-1 group-hover:text-brand-primary transition-colors">{item.name}</h3>
@@ -733,71 +610,81 @@ export default function HomeClient({
   const bulkOrder = hs?.bulkOrder || { badge: "Corporate & Wholesale", title: "Big Savings on Bulk Orders!", subtitle: "" };
 
   return (
-    <div className="bg-[#FAF7F2] min-h-screen pb-28 lg:pb-8">
+    <div className="bg-brand-bg min-h-screen pb-28 lg:pb-8">
 
       {/* ── HERO SECTION ── */}
       {slides.length > 0 && (
         <section className="relative">
-          <div className="relative w-full h-[60vw] min-h-[320px] max-h-[500px] bg-[#1a3a20] overflow-hidden">
+          <div className="relative w-full h-[78vw] min-h-[420px] max-h-[640px] bg-[#0E1A0F] overflow-hidden">
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
               <motion.div key={heroIdx} custom={direction}
-                initial={{ x: direction > 0 ? "100%" : "-100%", opacity: 0.5 }}
-                animate={{ x: 0, opacity: 1 }} exit={{ x: direction > 0 ? "-100%" : "100%", opacity: 0.5 }}
-                transition={{ type: "tween", ease: [0.77, 0, 0.18, 1], duration: 0.25 }}
-                drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.1}
+                initial={{ opacity: 0, scale: 1.06 }}
+                animate={{ opacity: 1, scale: 1.04 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
+                drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.08}
                 onDragEnd={(_, info) => { if (info.offset.x < -60) { paginate(1); resetAutoPlay(); } else if (info.offset.x > 60) { paginate(-1); resetAutoPlay(); } }}
                 className="absolute inset-0 cursor-grab active:cursor-grabbing">
-                <Image src={slides[heroIdx]?.img} alt={slides[heroIdx]?.title || "Hero banner"} fill priority={heroIdx === 0} className="object-cover scale-[1.04] animate-ken-burns" draggable={false} />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10" />
-                <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-10 pb-16 sm:pb-20">
-                  <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6, ease: "easeOut" }}>
-                    <p className="text-brand-accent text-[10px] font-black uppercase tracking-[0.3em] mb-2 drop-shadow-md">PJ Bite Premium</p>
-                    <h1 className="text-white text-[22px] sm:text-3xl font-black font-serif leading-tight mb-4 max-w-sm sm:max-w-lg drop-shadow-xl">{slides[heroIdx]?.title}</h1>
-                    <Link href="/products" className="inline-flex items-center gap-2 bg-brand-primary text-white text-xs font-black px-6 py-3 rounded-full uppercase tracking-widest hover:bg-[#164a20] transition-colors shadow-lg">
-                      Shop Now <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </motion.div>
+                <Image src={slides[heroIdx]?.img} alt={slides[heroIdx]?.title || "Hero banner"} fill priority={heroIdx === 0} className="object-cover animate-ken-burns" draggable={false} />
+                {/* Editorial gradient — darker at bottom-left for copy legibility, breathes on the right */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-14">
+                    <motion.div initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="max-w-xl">
+                      <p className="pj-eyebrow text-brand-accent mb-5 drop-shadow-md">PJ Bite Premium</p>
+                      <h1 className="text-white font-serif font-black tracking-tight leading-[1.05] mb-6 drop-shadow-2xl"
+                          style={{ fontSize: "clamp(2rem, 5vw, 4rem)", letterSpacing: "-0.02em" }}>
+                        {slides[heroIdx]?.title}
+                      </h1>
+                      <div className="flex items-center gap-4">
+                        <Link href="/products" className="group inline-flex items-center gap-2.5 bg-brand-accent text-brand-text text-[11px] sm:text-xs font-black px-7 sm:px-8 py-3.5 sm:py-4 rounded-full uppercase tracking-[0.25em] hover:bg-brand-accent-dark transition-all duration-300 shadow-[0_12px_28px_-10px_rgba(244,197,66,0.6)] hover:shadow-[0_18px_36px_-10px_rgba(244,197,66,0.7)] hover:-translate-y-0.5">
+                          Shop Now <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                        <Link href="/about" className="hidden sm:inline-flex items-center gap-2 text-white/85 hover:text-white text-[11px] font-black uppercase tracking-[0.25em] transition-colors border-b border-white/30 hover:border-white pb-1">
+                          Our Story
+                        </Link>
+                      </div>
+                    </motion.div>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
             <button onClick={() => { paginate(-1); resetAutoPlay(); }} aria-label="Previous slide"
-              className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg">
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/25 flex items-center justify-center transition-all duration-300 hover:scale-105">
+              <ChevronLeft className="w-5 h-5 text-white" strokeWidth={1.8} />
             </button>
             <button onClick={() => { paginate(1); resetAutoPlay(); }} aria-label="Next slide"
-              className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm border border-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110 shadow-lg">
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-md border border-white/25 flex items-center justify-center transition-all duration-300 hover:scale-105">
+              <ChevronRight className="w-5 h-5 text-white" strokeWidth={1.8} />
             </button>
-            <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+            <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
               {slides.map((_, dotIdx) => (
                 <button key={dotIdx} onClick={() => { goTo(dotIdx); resetAutoPlay(); }} aria-label={`Go to slide ${dotIdx + 1}`}
-                  className={`transition-all duration-400 rounded-full ${heroIdx === dotIdx ? "w-7 h-2 bg-brand-accent shadow-md" : "w-2 h-2 bg-white/50 hover:bg-white/80"}`} />
+                  className={`transition-all duration-500 ${heroIdx === dotIdx ? "w-10 h-[3px] bg-brand-accent" : "w-5 h-[3px] bg-white/35 hover:bg-white/60"}`} />
               ))}
             </div>
-            <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-1.5 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
-              <span className="text-white text-[11px] font-black">{heroIdx + 1}</span>
-              <span className="text-white/40 text-[11px]">/</span>
-              <span className="text-white/60 text-[11px] font-bold">{slides.length}</span>
+            <div className="absolute top-6 right-6 z-20 hidden sm:flex items-center gap-2 text-white/70 font-mono">
+              <span className="text-white text-[13px] font-black tracking-wider">{String(heroIdx + 1).padStart(2, "0")}</span>
+              <span className="w-6 h-px bg-white/30" />
+              <span className="text-white/60 text-[13px] font-bold tracking-wider">{String(slides.length).padStart(2, "0")}</span>
             </div>
           </div>
 
           {/* Trust Strip */}
           {trustStrip.length > 0 && (
-            <div className="w-[92%] sm:w-auto sm:mx-8 lg:mx-auto lg:max-w-4xl mx-auto -mt-6 sm:-mt-8 rounded-2xl sm:rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.06)] bg-white/95 backdrop-blur-md relative z-10 border border-[#E8E6E1]/50 p-0.5">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-0.5 overflow-hidden rounded-xl sm:rounded-[1.8rem]">
+            <div className="w-[94%] sm:w-auto sm:mx-8 lg:mx-auto lg:max-w-5xl mx-auto -mt-10 sm:-mt-14 rounded-2xl sm:rounded-[1.5rem] bg-white relative z-10 border border-[#EAE7DD] shadow-[0_12px_40px_-12px_rgba(26,32,16,0.12)] overflow-hidden">
+              <div className="grid grid-cols-2 lg:grid-cols-4 divide-y divide-x divide-[#EAE7DD] lg:divide-y-0">
                 {trustStrip.map((s, idx) => (
-                  <motion.div key={s.label} whileHover={{ y: -2 }} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1, duration: 0.5 }}
-                    className="py-3 sm:py-5 px-2 sm:px-6 bg-white flex flex-col items-center justify-center gap-1.5 hover:bg-brand-bg transition-colors cursor-default group">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-brand-primary/5 flex items-center justify-center group-hover:bg-brand-primary/10 transition-colors">
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 opacity-80 group-hover:scale-110 transition-transform duration-300">
-                        {TRUST_SVGS[s.iconType] || TRUST_SVGS["no-color"]}
-                      </div>
+                  <motion.div key={s.label} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                    transition={{ delay: idx * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    className={`py-7 sm:py-9 px-3 sm:px-6 bg-white flex flex-col items-center justify-center gap-3 hover:bg-brand-bg/60 transition-colors cursor-default group ${idx === 0 ? "border-l-0" : ""}`}>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                      {TRUST_SVGS[s.iconType] || TRUST_SVGS["no-color"]}
                     </div>
                     <div className="text-center">
-                      <p className="text-[9px] sm:text-[10px] text-brand-text font-black uppercase tracking-wider leading-none mb-1">{s.label}</p>
-                      <p className="text-[7.5px] sm:text-[8px] text-brand-primary/60 font-black uppercase tracking-[0.2em] leading-none">{s.subline}</p>
+                      <p className="text-[10px] sm:text-[11px] text-brand-text font-black uppercase tracking-[0.18em] leading-none mb-1.5">{s.label}</p>
+                      <p className="text-[8.5px] sm:text-[9px] text-brand-text-muted font-bold uppercase tracking-[0.22em] leading-none">{s.subline}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -809,28 +696,20 @@ export default function HomeClient({
 
       {/* ── NEW ARRIVALS ── */}
       {dbNewArrivals.length > 0 && (
-        <section className="mt-8 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2.5">
-                <div className="relative">
-                  <motion.div animate={{ scale: [1, 1.3, 1], rotate: [0, 15, -15, 0] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}>
-                    <Sparkles className="w-5 h-5 text-[#D4A017]" strokeWidth={2} />
-                  </motion.div>
-                  <motion.div animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-[#D4A017]/20" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-[#D4A017] uppercase tracking-[0.3em] leading-none mb-0.5">Just Landed</p>
-                  <h2 className="text-base font-black text-brand-text uppercase tracking-widest leading-none">New Arrivals</h2>
-                </div>
+            <div className="flex items-end justify-between mb-10 gap-6">
+              <div>
+                <p className="pj-eyebrow mb-3">Just Landed</p>
+                <h2 className="pj-heading-sm">New Arrivals</h2>
               </div>
-              <Link href="/products" className="text-[11px] font-black text-brand-primary uppercase tracking-widest flex items-center gap-1 hover:underline">
-                See All <ChevronRight className="w-3.5 h-3.5" />
+              <Link href="/products" className="group hidden sm:inline-flex items-center gap-2 text-[11px] font-black text-brand-text uppercase tracking-[0.25em] border-b border-brand-text/30 hover:border-brand-primary hover:text-brand-primary pb-1 transition-colors">
+                View All <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4">
+            <div className="flex gap-5 overflow-x-auto no-scrollbar pb-8 -mx-4 px-4">
               {dbNewArrivals.map((p: any, i: number) => (
-                <motion.div key={p._id?.toString() || i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05, duration: 0.4 }} className="shrink-0 w-[160px] sm:w-[220px]">
+                <motion.div key={p._id?.toString() || i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="shrink-0 w-[170px] sm:w-[240px]">
                   <ProductCard product={{ ...p, tag: "New" }} />
                 </motion.div>
               ))}
@@ -839,18 +718,23 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* ── SHOP BY BRAND ── */}
-      <BrandCarousel categories={dbCategories || []} />
+      {/* ── SHOP BY CATEGORY (Dried Fruits + Dried Vegetables) ── */}
+      <ShopByCategoryGrid categories={dbCategories || []} />
 
       {/* ── FEATURED PRODUCTS ── */}
       {dbProducts.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-black text-brand-text uppercase tracking-widest">Top Selling Products</h2>
-              <Link href="/products" className="text-xs font-black text-brand-primary flex items-center gap-1 hover:underline">View All <ChevronRight className="w-3.5 h-3.5" /></Link>
+            <div className="flex items-end justify-between mb-10 gap-6">
+              <div>
+                <p className="pj-eyebrow mb-3">Bestsellers</p>
+                <h2 className="pj-heading-sm">Top Selling Products</h2>
+              </div>
+              <Link href="/products" className="group hidden sm:inline-flex items-center gap-2 text-[11px] font-black text-brand-text uppercase tracking-[0.25em] border-b border-brand-text/30 hover:border-brand-primary hover:text-brand-primary pb-1 transition-colors">
+                View All <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {dbProducts.slice(0, 4).map((p: any, i: number) => (
                 <ProductCard key={p._id?.toString() || i} product={{ ...p, tag: i === 0 ? "Bestseller" : i === 1 ? "New" : "Popular" }} />
               ))}
@@ -861,19 +745,21 @@ export default function HomeClient({
 
       {/* ── BENEFITS STRIP ── */}
       {benefits.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {benefits.map((b) => (
-                <div key={b.label} className="bg-white rounded-2xl border border-[#E8E6E1] p-4 flex items-center gap-3 shadow-sm">
-                  <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                    <DynIcon name={b.iconName} className="w-5 h-5 text-brand-primary" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {benefits.map((b, i) => (
+                <motion.div key={b.label} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="group pj-card p-5 sm:p-6 flex items-center gap-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-brand-primary/8 border border-brand-primary/15 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-brand-primary group-hover:border-brand-primary transition-colors duration-500">
+                    <DynIcon name={b.iconName} className="w-5 h-5 sm:w-6 sm:h-6 text-brand-primary group-hover:text-white transition-colors duration-500" />
                   </div>
                   <div>
-                    <p className="text-xs font-black text-brand-text">{b.label}</p>
-                    <p className="text-[10px] text-brand-text-muted font-medium leading-tight">{b.sub}</p>
+                    <p className="text-[13px] font-black text-brand-text tracking-tight">{b.label}</p>
+                    <p className="text-[11px] text-brand-text-muted font-medium leading-snug mt-0.5">{b.sub}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -882,14 +768,15 @@ export default function HomeClient({
 
       {/* ── QUALITY CLAIMS MARQUEE ── */}
       {qualityClaims.length > 0 && (
-        <section className="mt-6 px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-[#1a3a20] rounded-2xl py-4 px-6 overflow-hidden relative">
-              <div className="flex animate-marquee whitespace-nowrap gap-0">
-                {[...qualityClaims, ...qualityClaims].map((claim, i) => (
-                  <span key={i} className="text-[#a3c96e] text-[11px] font-black uppercase tracking-widest mx-6 shrink-0">{claim}</span>
-                ))}
-              </div>
+        <section className="mt-16 sm:mt-24">
+          <div className="relative overflow-hidden border-y border-brand-primary/15 bg-gradient-to-r from-brand-bg via-white to-brand-bg py-6">
+            <div className="flex animate-marquee whitespace-nowrap gap-0">
+              {[...qualityClaims, ...qualityClaims].map((claim, i) => (
+                <span key={i} className="text-brand-primary text-[11px] sm:text-[12px] font-black uppercase tracking-[0.35em] mx-10 shrink-0 flex items-center gap-3">
+                  {claim}
+                  <span className="w-1 h-1 rounded-full bg-brand-accent" />
+                </span>
+              ))}
             </div>
           </div>
         </section>
@@ -897,13 +784,18 @@ export default function HomeClient({
 
       {/* ── MORE PRODUCTS ── */}
       {dbProducts.length > 4 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-black text-brand-text uppercase tracking-widest">Healthy Snacking</h2>
-              <Link href="/products" className="text-xs font-black text-brand-primary flex items-center gap-1 hover:underline">View All <ChevronRight className="w-3.5 h-3.5" /></Link>
+            <div className="flex items-end justify-between mb-10 gap-6">
+              <div>
+                <p className="pj-eyebrow mb-3">Everyday Picks</p>
+                <h2 className="pj-heading-sm">Healthy Snacking</h2>
+              </div>
+              <Link href="/products" className="group hidden sm:inline-flex items-center gap-2 text-[11px] font-black text-brand-text uppercase tracking-[0.25em] border-b border-brand-text/30 hover:border-brand-primary hover:text-brand-primary pb-1 transition-colors">
+                View All <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {dbProducts.slice(4, 8).map((p: any, i: number) => (
                 <ProductCard key={p._id?.toString() || `h${i}`} product={{ ...p, tag: "Fresh" }} />
               ))}
@@ -914,20 +806,23 @@ export default function HomeClient({
 
       {/* ── SHOP BY PURPOSE ── */}
       {purposes.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-base font-black text-brand-text uppercase tracking-widest mb-2 text-center">Shop By Purpose</h2>
-            <p className="text-xs text-brand-text-muted text-center font-medium mb-5">We just made it easy for you to shop on your terms. Let's get started to find your way for passion for healthy nutrition.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
+            <div className="flex flex-col items-center text-center mb-12">
+              <p className="pj-eyebrow pj-eyebrow--center mb-4">Curated</p>
+              <h2 className="pj-heading-sm">Shop By Purpose</h2>
+              <p className="pj-subhead mt-4">A simple way to find what fits your day — from gifting to gym fuel.</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6">
               {purposes.map((p, idx) => (
                 <Link key={p.label} href={p.href}
-                  className="bg-white rounded-[20px] border border-[#E8E6E1] p-6 flex flex-col items-center gap-4 hover:border-brand-primary/50 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_10px_20px_rgba(0,0,0,0.06)] transition-all duration-300 group">
-                  <motion.div initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: idx * 0.1 }}
-                    className="w-14 h-14 rounded-full bg-[#f8f6f0] flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-colors duration-300 text-brand-primary">
-                    <DynIcon name={p.iconName} className="w-6 h-6" />
+                  className="group pj-card p-8 flex flex-col items-center gap-5 text-center">
+                  <motion.div initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-16 h-16 rounded-full bg-brand-bg border border-brand-primary/15 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white group-hover:border-brand-primary transition-all duration-500">
+                    <DynIcon name={p.iconName} className="w-7 h-7" />
                   </motion.div>
-                  <span className="text-[13px] font-black text-brand-text uppercase tracking-widest group-hover:text-brand-primary transition-colors">{p.label}</span>
+                  <span className="text-[12px] font-black text-brand-text uppercase tracking-[0.25em] group-hover:text-brand-primary transition-colors">{p.label}</span>
                 </Link>
               ))}
             </div>
@@ -936,47 +831,68 @@ export default function HomeClient({
       )}
 
       {/* ── BULK ORDER BANNER ── */}
-      <section className="mt-10 mx-4">
+      <section className="mt-20 sm:mt-28 mx-4">
         <div className="max-w-7xl mx-auto">
-          <div className="rounded-2xl bg-gradient-to-r from-brand-primary to-[#164a20] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-5">
-            <div>
-              <p className="text-brand-accent text-[10px] font-black uppercase tracking-widest mb-2">{bulkOrder.badge}</p>
-              <h2 className="text-white text-xl sm:text-2xl font-black font-serif leading-tight">{bulkOrder.title}</h2>
-              {bulkOrder.subtitle && <p className="text-white/70 text-xs font-medium mt-2">{bulkOrder.subtitle}</p>}
+          <div className="relative rounded-[2rem] bg-gradient-to-br from-brand-primary-dark via-brand-primary to-brand-primary-light p-10 sm:p-14 overflow-hidden">
+            <div className="absolute -right-20 -top-20 w-80 h-80 bg-brand-accent/15 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -left-10 -bottom-20 w-72 h-72 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.08),_transparent_60%)] pointer-events-none" />
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8">
+              <div className="max-w-2xl">
+                <p className="pj-eyebrow text-brand-accent mb-5">{bulkOrder.badge}</p>
+                <h2 className="text-white font-serif font-black tracking-tight leading-[1.1]"
+                    style={{ fontSize: "clamp(1.75rem, 3vw, 2.75rem)", letterSpacing: "-0.015em" }}>
+                  {bulkOrder.title}
+                </h2>
+                {bulkOrder.subtitle && (
+                  <p className="text-white/75 text-sm sm:text-base font-medium mt-5 leading-relaxed max-w-xl">{bulkOrder.subtitle}</p>
+                )}
+              </div>
+              <Link href="/contact" className="group shrink-0 inline-flex items-center gap-2.5 bg-brand-accent text-brand-text text-xs font-black px-8 py-4 rounded-full uppercase tracking-[0.25em] hover:bg-brand-accent-dark transition-all duration-300 shadow-[0_12px_28px_-10px_rgba(244,197,66,0.6)] hover:-translate-y-0.5">
+                Contact Us <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
-            <Link href="/contact" className="shrink-0 bg-white text-brand-primary text-xs font-black px-6 py-3 rounded-full uppercase tracking-widest hover:bg-brand-bg transition-colors shadow-lg">
-              Contact Us
-            </Link>
           </div>
         </div>
       </section>
 
       {/* ── WHY PJ BITE ── */}
       {whyPjBite.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="rounded-2xl bg-[#1a3a20] p-6 sm:p-8 overflow-hidden relative">
-              <div className="absolute -right-10 -top-10 w-48 h-48 bg-brand-primary/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute -left-5 bottom-0 w-32 h-32 bg-brand-accent/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="relative z-10">
-                <p className="text-brand-accent text-[10px] font-black uppercase tracking-[0.25em] mb-2">Why Choose Us</p>
-                <h2 className="text-white text-xl sm:text-2xl font-black font-serif mb-6 max-w-xs leading-tight">Why PJ Bite is Different</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {whyPjBite.map((f) => (
-                    <div key={f.title} className="flex items-start gap-3">
-                      <div className="w-9 h-9 bg-brand-primary/30 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                        <DynIcon name={f.iconName} className="w-4 h-4 text-brand-accent" />
+            <div className="relative rounded-[2rem] bg-[#0E1A0F] p-10 sm:p-16 overflow-hidden">
+              <div className="absolute -right-20 -top-20 w-96 h-96 bg-brand-primary/25 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -left-10 -bottom-10 w-72 h-72 bg-brand-accent/12 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(121,174,111,0.18),_transparent_55%)] pointer-events-none" />
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-14">
+                <div className="lg:col-span-2">
+                  <p className="pj-eyebrow text-brand-accent mb-5">Why Choose Us</p>
+                  <h2 className="text-white font-serif font-black tracking-tight leading-[1.05] mb-6"
+                      style={{ fontSize: "clamp(1.75rem, 3.5vw, 3rem)", letterSpacing: "-0.015em" }}>
+                    Why PJ Bite is Different
+                  </h2>
+                  <p className="text-white/65 text-sm sm:text-base font-medium leading-relaxed mb-8 max-w-md">
+                    A clean-label promise — sourced from farms we know, processed naturally, sealed with care.
+                  </p>
+                  <Link href="/about" className="group inline-flex items-center gap-2.5 bg-white text-brand-text text-xs font-black px-7 py-3.5 rounded-full uppercase tracking-[0.25em] hover:bg-brand-accent transition-colors duration-300 shadow-lg">
+                    Our Story <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+                <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+                  {whyPjBite.map((f, i) => (
+                    <motion.div key={f.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                      transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      className="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:bg-white/[0.07] hover:border-white/20 transition-all duration-500">
+                      <div className="w-11 h-11 bg-brand-accent/15 border border-brand-accent/30 rounded-xl flex items-center justify-center shrink-0">
+                        <DynIcon name={f.iconName} className="w-5 h-5 text-brand-accent" />
                       </div>
                       <div>
-                        <p className="text-sm font-black text-white mb-1">{f.title}</p>
-                        <p className="text-xs text-white/60 font-medium leading-relaxed">{f.desc}</p>
+                        <p className="text-[15px] font-black text-white mb-1.5 tracking-tight">{f.title}</p>
+                        <p className="text-[12.5px] text-white/65 font-medium leading-relaxed">{f.desc}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-                <Link href="/about" className="inline-flex items-center gap-2 mt-6 bg-white text-brand-primary text-xs font-black px-5 py-2.5 rounded-full uppercase tracking-widest hover:bg-brand-bg transition-colors shadow-lg">
-                  Our Story <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
               </div>
             </div>
           </div>
@@ -988,11 +904,15 @@ export default function HomeClient({
 
       {/* ── QUALITY TRUST SECTION ── */}
       {dbQualityCards.length > 0 && (
-        <section className="mt-12 bg-[#E1EFEB] py-14 px-4 shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)] border-y border-[#D0E0DC]">
+        <section className="mt-20 sm:mt-28 bg-gradient-to-b from-brand-bg via-[#EAEEDA] to-brand-bg py-20 px-4 border-y border-brand-primary/15">
           <div className="max-w-7xl mx-auto">
-            <div className="hidden lg:grid grid-cols-4 gap-6">
+            <div className="flex flex-col items-center text-center mb-14">
+              <p className="pj-eyebrow pj-eyebrow--center mb-4">The PJ Bite Promise</p>
+              <h2 className="pj-heading">Crafted with care</h2>
+            </div>
+            <div className="hidden lg:grid grid-cols-4 gap-7">
               {dbQualityCards.map((card, idx) => (
-                <div key={card._id} className="bg-[#FAF4E8] rounded-2xl overflow-hidden flex flex-col items-center pt-8 px-5 shadow-sm border border-[#EBE3D3] group transition-all duration-300 hover:shadow-md hover:border-[#D5C9B0]">
+                <div key={card._id} className="bg-white rounded-3xl overflow-hidden flex flex-col items-center pt-10 px-6 shadow-[0_4px_24px_-12px_rgba(26,32,16,0.1)] border border-[#EAE7DD] group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_48px_-20px_rgba(121,174,111,0.2)]">
                   <div className="text-center mb-5">
                     <Sun className="w-6 h-6 text-[#E0D5B5] mx-auto mb-3" />
                     <h3 className="text-[#1A3A20] text-[16px] font-black leading-tight mb-2 drop-shadow-sm">{card.title}</h3>
@@ -1014,20 +934,25 @@ export default function HomeClient({
 
       {/* ── HOW IT WORKS ── */}
       {howItWorks.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-base font-black text-brand-text uppercase tracking-widest mb-6 text-center">From Farm to Your Doorstep</h2>
-            <div className="grid grid-cols-4 gap-2 sm:gap-4 relative">
-              <div className="absolute top-7 left-[12.5%] right-[12.5%] h-px bg-dashed border-t-2 border-dashed border-[#E8E6E1] hidden sm:block" />
-              {howItWorks.map((s) => (
-                <div key={s.step} className="flex flex-col items-center gap-2 relative">
-                  <div className="w-14 h-14 bg-brand-primary rounded-2xl flex items-center justify-center shadow-md shadow-brand-primary/20 relative z-10">
-                    <DynIcon name={s.iconName} className="w-7 h-7 text-white" />
+            <div className="flex flex-col items-center text-center mb-14">
+              <p className="pj-eyebrow pj-eyebrow--center mb-4">Our Process</p>
+              <h2 className="pj-heading-sm">From farm to your doorstep</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 relative">
+              <div className="absolute top-9 left-[12.5%] right-[12.5%] h-px border-t border-dashed border-brand-primary/25 hidden sm:block" />
+              {howItWorks.map((s, i) => (
+                <motion.div key={s.step} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex flex-col items-center gap-3 relative">
+                  <div className="w-[72px] h-[72px] bg-white border border-brand-primary/20 rounded-full flex items-center justify-center shadow-[0_8px_24px_-12px_rgba(121,174,111,0.4)] relative z-10">
+                    <DynIcon name={s.iconName} className="w-7 h-7 text-brand-primary" />
                   </div>
-                  <span className="text-[10px] font-black text-brand-text-muted">{s.step}</span>
-                  <p className="text-xs font-black text-brand-text text-center leading-tight">{s.label}</p>
-                  <p className="text-[10px] text-brand-text-muted font-medium text-center leading-tight hidden sm:block">{s.desc}</p>
-                </div>
+                  <span className="text-[10px] font-black text-brand-accent-dark tracking-[0.3em]">{s.step}</span>
+                  <p className="text-sm font-black text-brand-text text-center leading-tight tracking-tight">{s.label}</p>
+                  <p className="text-[12px] text-brand-text-muted font-medium text-center leading-snug hidden sm:block">{s.desc}</p>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -1036,10 +961,13 @@ export default function HomeClient({
 
       {/* ── FAQ ── */}
       {dbFaqs.length > 0 && (
-        <section className="mt-10 px-4">
+        <section className="mt-20 sm:mt-28 px-4">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-base font-black text-brand-text uppercase tracking-widest mb-5 text-center">FAQs</h2>
-            <div className="bg-white rounded-2xl border border-[#E8E6E1] px-5 shadow-sm">
+            <div className="flex flex-col items-center text-center mb-10">
+              <p className="pj-eyebrow pj-eyebrow--center mb-4">Good to know</p>
+              <h2 className="pj-heading-sm">Frequently Asked</h2>
+            </div>
+            <div className="bg-white rounded-3xl border border-[#EAE7DD] px-7 shadow-[0_4px_24px_-12px_rgba(26,32,16,0.08)]">
               {dbFaqs.map((faq: any, i: number) => (
                 <FaqItem key={faq._id || i} q={faq.question} a={faq.answer} />
               ))}

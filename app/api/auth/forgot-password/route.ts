@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import OTP from "@/models/OTP";
+import OTP from "@/models/Otp";
 import { sendAuthEmail } from "@/lib/mailer";
 
 function generateOTP() {
