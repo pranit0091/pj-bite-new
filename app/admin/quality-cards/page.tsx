@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { showToast, showConfirm, showError } from "@/lib/swal";
 import ImageUpload from "@/components/ui/ImageUpload";
+import FileUpload from "@/components/ui/FileUpload";
 
 interface QualityCard {
   _id: string;
@@ -13,9 +14,10 @@ interface QualityCard {
   alt: string;
   order: number;
   active: boolean;
+  reportUrl: string;
 }
 
-const EMPTY_FORM = { title: "", desc: "", img: "", alt: "", order: 0, active: true };
+const EMPTY_FORM = { title: "", desc: "", img: "", alt: "", order: 0, active: true, reportUrl: "" };
 
 function CardForm({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void }) {
   return (
@@ -44,6 +46,25 @@ function CardForm({ f, setF }: { f: typeof EMPTY_FORM; setF: (v: any) => void })
           <input value={f.alt} onChange={e => setF({ ...f, alt: e.target.value })}
             className="w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
             placeholder="Image description for accessibility" />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-brand-text mb-1">Test Report (PDF)</label>
+          <FileUpload
+            folder="quality-reports"
+            defaultUrl={f.reportUrl}
+            onUpload={(url) => setF({ ...f, reportUrl: url })}
+            label="Upload test report PDF"
+          />
+          <p className="text-[11px] text-brand-text-muted mt-2">
+            Or paste an external URL:
+          </p>
+          <input
+            value={f.reportUrl}
+            onChange={(e) => setF({ ...f, reportUrl: e.target.value })}
+            className="mt-1 w-full px-4 py-2 border border-[#E8E6E1] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary"
+            placeholder="https://… link to lab/quality report"
+          />
+          <p className="text-[11px] text-brand-text-muted mt-1">Optional. When set, visitors can click the card to view the report as proof.</p>
         </div>
         <div className="flex items-center gap-4">
           <div>
@@ -150,7 +171,7 @@ export default function AdminQualityCardsPage() {
 
   const openEdit = (item: QualityCard) => {
     setEditing(item);
-    setEditForm({ title: item.title, desc: item.desc, img: item.img, alt: item.alt, order: item.order, active: item.active });
+    setEditForm({ title: item.title, desc: item.desc, img: item.img, alt: item.alt, order: item.order, active: item.active, reportUrl: item.reportUrl || "" });
   };
 
   return (

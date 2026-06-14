@@ -21,6 +21,7 @@ interface Category {
 
 interface ProductFiltersProps {
   categories: Category[];
+  stockCounts?: { inStock: number; outOfStock: number };
 }
 
 function FilterSection({ title, children, defaultOpen = true, onReset, subtext }: { title: string; children: React.ReactNode; defaultOpen?: boolean; onReset?: () => void; subtext?: React.ReactNode }) {
@@ -55,7 +56,7 @@ function FilterSection({ title, children, defaultOpen = true, onReset, subtext }
   );
 }
 
-export default function ProductFilters({ categories }: ProductFiltersProps) {
+export default function ProductFilters({ categories, stockCounts }: ProductFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -66,6 +67,7 @@ export default function ProductFilters({ categories }: ProductFiltersProps) {
   const currentMin = searchParams.get("minPrice") || "";
   const currentMax = searchParams.get("maxPrice") || "";
   const currentSearch = searchParams.get("q") || "";
+  const currentAvailability = searchParams.get("availability") || "";
 
   const [minPrice, setMinPrice] = useState(currentMin);
   const [maxPrice, setMaxPrice] = useState(currentMax);
@@ -98,7 +100,7 @@ export default function ProductFilters({ categories }: ProductFiltersProps) {
     setMaxPrice("");
   };
 
-  const hasFilters = currentCategory || currentSort || currentMin || currentMax || currentSearch;
+  const hasFilters = currentCategory || currentSort || currentMin || currentMax || currentSearch || currentAvailability;
 
   const FiltersContent = () => (
     <div className="flex flex-col">
@@ -116,15 +118,33 @@ export default function ProductFilters({ categories }: ProductFiltersProps) {
       )}
 
       {/* AVAILABILITY */}
-      <FilterSection title="AVAILABILITY" subtext="0 selected" onReset={() => {}}>
+      <FilterSection
+        title="AVAILABILITY"
+        subtext={`${currentAvailability ? 1 : 0} selected`}
+        onReset={() => navigate({ availability: null })}
+      >
          <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-3 cursor-pointer group">
-               <div className="w-4 h-4 rounded border border-gray-300 flex items-center justify-center group-hover:border-brand-primary transition-colors"></div>
-               <span className="text-xs text-brand-text-muted group-hover:text-brand-primary transition-colors">In stock (82)</span>
+            <label
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => navigate({ availability: currentAvailability === "in_stock" ? null : "in_stock" })}
+            >
+               <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${currentAvailability === "in_stock" ? "bg-[#164a20] border-[#164a20]" : "border-gray-300 group-hover:border-brand-primary"}`}>
+                  {currentAvailability === "in_stock" && <X className="w-2.5 h-2.5 text-white" />}
+               </div>
+               <span className={`text-xs transition-colors ${currentAvailability === "in_stock" ? "text-brand-primary font-bold" : "text-brand-text-muted group-hover:text-brand-primary"}`}>
+                  In stock{typeof stockCounts?.inStock === "number" ? ` (${stockCounts.inStock})` : ""}
+               </span>
             </label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-               <div className="w-4 h-4 rounded border border-gray-300 flex items-center justify-center group-hover:border-brand-primary transition-colors"></div>
-               <span className="text-xs text-brand-text-muted group-hover:text-brand-primary transition-colors">Out of stock (48)</span>
+            <label
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => navigate({ availability: currentAvailability === "out_of_stock" ? null : "out_of_stock" })}
+            >
+               <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${currentAvailability === "out_of_stock" ? "bg-[#164a20] border-[#164a20]" : "border-gray-300 group-hover:border-brand-primary"}`}>
+                  {currentAvailability === "out_of_stock" && <X className="w-2.5 h-2.5 text-white" />}
+               </div>
+               <span className={`text-xs transition-colors ${currentAvailability === "out_of_stock" ? "text-brand-primary font-bold" : "text-brand-text-muted group-hover:text-brand-primary"}`}>
+                  Out of stock{typeof stockCounts?.outOfStock === "number" ? ` (${stockCounts.outOfStock})` : ""}
+               </span>
             </label>
          </div>
       </FilterSection>
@@ -177,7 +197,7 @@ export default function ProductFilters({ categories }: ProductFiltersProps) {
                    {currentCategory === cat.slug && <X className="w-2.5 h-2.5 text-white" />}
                 </div>
                 <span className={`text-xs transition-colors ${currentCategory === cat.slug ? "text-brand-primary font-bold" : "text-brand-text-muted group-hover:text-brand-primary"}`}>
-                   {cat.name} {cat._id ? "" : "(17)"}
+                   {cat.name}
                 </span>
              </label>
           ))}
@@ -198,7 +218,7 @@ export default function ProductFilters({ categories }: ProductFiltersProps) {
           Filters
           {hasFilters && (
             <span className="w-5 h-5 bg-brand-primary text-white text-[10px] font-black rounded-full flex items-center justify-center">
-              {[currentCategory, currentSort, currentMin, currentMax, currentSearch].filter(Boolean).length}
+              {[currentCategory, currentSort, currentMin, currentMax, currentSearch, currentAvailability].filter(Boolean).length}
             </span>
           )}
         </button>

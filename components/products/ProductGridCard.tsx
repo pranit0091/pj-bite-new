@@ -88,13 +88,14 @@ export default function ProductGridCard({ prod }: ProductGridCardProps) {
         )}
       </div>
 
-      {/* Image */}
+      {/* Image — fixed aspect-square box; object-cover keeps every product at
+          the same visual footprint regardless of source-image aspect ratio. */}
       <Link href={`/products/${prod.slug}`} className="w-full relative aspect-square bg-[#FAF7F2] rounded-lg overflow-hidden mb-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img 
-          src={img} 
-          alt={prod.name} 
-          className="w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
+        <img
+          src={img}
+          alt={prod.name}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         
         {/* Quick Buy Overlay on Hover */}

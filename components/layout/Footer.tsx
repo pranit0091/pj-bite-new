@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Instagram, Mail, Phone, MapPin, ArrowRight, ShieldCheck, Truck, CreditCard, Leaf, Linkedin, AtSign } from "lucide-react";
+import NewsletterForm from "./NewsletterForm";
 
 export default function Footer() {
   return (
@@ -18,19 +19,7 @@ export default function Footer() {
               Subscribe to our newsletter for exclusive offers, new arrivals, and the latest health tips. <span className="text-[#a3c96e] font-bold">Get 10% off your first order!</span>
             </p>
           </div>
-          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 sm:w-80">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                className="w-full bg-white/5 border border-white/10 rounded-full py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#a3c96e] transition-colors"
-              />
-            </div>
-            <button className="bg-[#a3c96e] hover:bg-[#8eb85a] text-[#1a3a20] px-8 py-3.5 rounded-full text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
-              Subscribe <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          <NewsletterForm />
         </div>
 
         {/* Main Links Area */}

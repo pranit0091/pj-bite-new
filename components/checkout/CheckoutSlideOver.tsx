@@ -159,22 +159,48 @@ export default function CheckoutSlideOver() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (name === "zip" && value.length === 6) fetchAddressFromPin(value);
+    // Sanitize zip: digits only, max 6
+    const next = name === "zip" ? value.replace(/\D/g, "").slice(0, 6) : value;
+    setFormData((prev) => ({ ...prev, [name]: next }));
+    if (name === "zip" && next.length === 6) fetchAddressFromPin(next);
   };
 
   const fetchAddressFromPin = async (pincode: string) => {
     setZipLoading(true);
     try {
+      // Primary lookup — India Post pincode API.
       const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
       const data = await res.json();
-      if (data?.[0]?.Status === "Success") {
-        const details = data[0].PostOffice[0];
-        setFormData((prev) => ({ ...prev, city: details.District, state: details.State }));
-        showToast(`Located ${details.District}, ${details.State}`, "success");
+      const post = data?.[0]?.PostOffice?.[0];
+      if (data?.[0]?.Status === "Success" && post) {
+        const city  = post.District || post.Block || post.Name || "";
+        const state = post.State || post.Circle || "";
+        if (city || state) {
+          setFormData((prev) => ({ ...prev, city: city || prev.city, state: state || prev.state }));
+          showToast(`Located ${city}${state ? ", " + state : ""}`, "success");
+          return;
+        }
       }
+      // Fallback: try the multi-postoffice endpoint occasionally needed for
+      // edge-case PINs where /pincode returns Status:"Error".
+      const alt = await fetch(`https://api.postalpincode.in/postoffice/${pincode}`).catch(() => null);
+      if (alt) {
+        const altData = await alt.json().catch(() => null);
+        const altPost = altData?.[0]?.PostOffice?.find((p: any) => p?.Pincode === pincode) || altData?.[0]?.PostOffice?.[0];
+        if (altData?.[0]?.Status === "Success" && altPost) {
+          const city  = altPost.District || altPost.Block || altPost.Name || "";
+          const state = altPost.State || altPost.Circle || "";
+          if (city || state) {
+            setFormData((prev) => ({ ...prev, city: city || prev.city, state: state || prev.state }));
+            showToast(`Located ${city}${state ? ", " + state : ""}`, "success");
+            return;
+          }
+        }
+      }
+      showToast("Couldn't auto-detect city/state — please enter them manually.", "info");
     } catch (err) {
       console.error("PIN lookup failed:", err);
+      showToast("PIN lookup failed — please enter city/state manually.", "info");
     } finally {
       setZipLoading(false);
     }
@@ -255,11 +281,12 @@ export default function CheckoutSlideOver() {
         const cartRes = await fetch("/api/checkout/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ items: activeItems, customerDetails, couponCode: appliedCoupon?.code }),
+          body: JSON.stringify({ items: activeItems, customerDetails, couponCode: appliedCoupon?.code, paymentMethod: "COD" }),
         });
-        if (!cartRes.ok) throw new Error("Cart validation failed. Please try again.");
-        const cartData = await cartRes.json();
-        if (cartData.error) throw new Error(cartData.error);
+        const cartData = await cartRes.json().catch(() => ({}));
+        if (!cartRes.ok || cartData.error) {
+          throw new Error(cartData.error || "Cart validation failed. Please try again.");
+        }
 
         const codRes = await fetch("/api/checkout/cart-cod", {
           method: "POST",
@@ -267,14 +294,17 @@ export default function CheckoutSlideOver() {
           body: JSON.stringify({
             productsInfo: cartData.products,
             customerDetails, rawAddress,
-            totalAmount: finalTotal,
+            // Trust the server-recomputed total so the order document matches
+            // what the user was actually charged.
+            totalAmount: typeof cartData.finalAmount === "number" ? cartData.finalAmount : finalTotal,
             couponCode: appliedCoupon?.code,
             discountApplied: discountAmount,
           }),
         });
-        if (!codRes.ok) throw new Error("Failed to place COD order. Please try again.");
-        const codData = await codRes.json();
-        if (!codData.success) throw new Error(codData.error || "Failed to place COD order");
+        const codData = await codRes.json().catch(() => ({}));
+        if (!codRes.ok || !codData.success) {
+          throw new Error(codData.error || "Failed to place COD order. Please try again.");
+        }
 
         clearCart();
         setBuyNowItem(null);
@@ -317,7 +347,9 @@ export default function CheckoutSlideOver() {
                 razorpay_signature: response.razorpay_signature,
                 productsInfo: data.products,
                 customerDetails, rawAddress,
-                totalAmount: finalTotal,
+                // Use the server-recomputed total (the amount Razorpay actually
+                // charged) so the saved order matches the captured payment.
+                totalAmount: typeof data.finalAmount === "number" ? data.finalAmount : finalTotal,
                 couponCode: appliedCoupon?.code,
                 discountApplied: discountAmount,
               }),

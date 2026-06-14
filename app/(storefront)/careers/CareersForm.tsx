@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Loader2, CheckCircle, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function CareersForm({ roles }: { roles: string[] }) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", position: roles[0] ?? "", message: "" });
+  // Default to first role if one exists, otherwise "General Application" (the
+  // option we render below). Without this, the select displays "General
+  // Application" but state stays "" until the user touches it, so a submit
+  // without interaction was being rejected as "position required".
+  const [form, setForm] = useState({ name: "", email: "", phone: "", position: roles[0] ?? "General Application", message: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 

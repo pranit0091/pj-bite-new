@@ -66,7 +66,7 @@ const HomeSettingsSchema = new Schema<IHomeSettings>(
     },
     bulkOrder: {
       badge: { type: String, default: "Corporate & Wholesale" },
-      title: { type: String, default: "Big Savings on Bulk Orders! 🥜" },
+      title: { type: String, default: "Big Savings on Bulk Orders!" },
       subtitle: { type: String, default: "Contact our team for special pricing on bulk dry fruit orders for events, gifting, and retail." },
     },
   },

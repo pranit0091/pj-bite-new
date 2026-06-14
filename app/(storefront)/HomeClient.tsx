@@ -24,18 +24,89 @@ function DynIcon({ name, className }: { name: string; className?: string }) {
   return <Icon className={className} />;
 }
 
-// ── Trust-strip "no" icon — one common ban/prohibition mark for all claims
-const BAN_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" stroke="#DC2626" strokeWidth="2.4" fill="none" />
-    <line x1="5.2" y1="5.2" x2="18.8" y2="18.8" stroke="#DC2626" strokeWidth="2.4" strokeLinecap="round" />
+// ── Trust-strip stamp-style badges — red prohibition seal per claim. The
+// surrounding label/subline text lives outside the SVG (rendered in the trust
+// strip below), so the stamp itself shows only: ridged outer ring + content
+// glyph + diagonal "no" slash. Pure SVG, no external images.
+const StampBadge = ({ children }: { children: React.ReactNode }) => (
+  <svg viewBox="0 0 100 100" aria-hidden="true">
+    {/* Ridged outer ring — 40 tiny triangular teeth around the rim */}
+    <g fill="#DC2626">
+      {Array.from({ length: 40 }).map((_, i) => {
+        const angle = (i * 360) / 40;
+        const rad = (angle * Math.PI) / 180;
+        const x1 = 50 + 48 * Math.cos(rad);
+        const y1 = 50 + 48 * Math.sin(rad);
+        const x2 = 50 + 44 * Math.cos(rad + 0.07);
+        const y2 = 50 + 44 * Math.sin(rad + 0.07);
+        const x3 = 50 + 44 * Math.cos(rad - 0.07);
+        const y3 = 50 + 44 * Math.sin(rad - 0.07);
+        return <polygon key={i} points={`${x1},${y1} ${x2},${y2} ${x3},${y3}`} />;
+      })}
+    </g>
+    {/* Double rim */}
+    <circle cx="50" cy="50" r="44" stroke="#DC2626" strokeWidth="1.8" fill="white" />
+    <circle cx="50" cy="50" r="40" stroke="#DC2626" strokeWidth="1.2" fill="none" />
+    {/* Inner content glyph (the thing being prohibited) — scaled larger now
+        that there is no curved text to leave room for */}
+    <g transform="translate(50 50) scale(1.5)">{children}</g>
+    {/* Diagonal "no" slash — drawn last, crosses the glyph */}
+    <line x1="22" y1="22" x2="78" y2="78" stroke="#DC2626" strokeWidth="6" strokeLinecap="round" />
   </svg>
 );
+
+const FlaskGlyph = (
+  <g stroke="#DC2626" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    {/* Erlenmeyer-style flask body */}
+    <path d="M -4 -10 L -4 -3 L -10 9 Q -11 12 -7 12 L 7 12 Q 11 12 10 9 L 4 -3 L 4 -10 Z" />
+    {/* Neck top rim */}
+    <line x1="-6" y1="-10" x2="6" y2="-10" />
+    {/* A little drop inside */}
+    <circle cx="0" cy="6" r="1.4" fill="#DC2626" stroke="none" />
+  </g>
+);
+const SugarCubesGlyph = (
+  <g stroke="#DC2626" strokeWidth="1.4" fill="none">
+    {/* Three stacked cubes */}
+    <rect x="-9" y="-4" width="8" height="8" />
+    <rect x="1"  y="-4" width="8" height="8" />
+    <rect x="-4" y="-12" width="8" height="8" />
+    {/* Cube highlights */}
+    <line x1="-7" y1="-2" x2="-3" y2="-2" />
+    <line x1="3" y1="-2" x2="7" y2="-2" />
+    <line x1="-2" y1="-10" x2="2" y2="-10" />
+  </g>
+);
+const ChemicalGlyph = (
+  <g stroke="#DC2626" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    {/* Round-bottom flask with bubbles */}
+    <line x1="-3" y1="-12" x2="-3" y2="-4" />
+    <line x1="3" y1="-12" x2="3" y2="-4" />
+    <line x1="-5" y1="-12" x2="5" y2="-12" />
+    <path d="M -3 -4 Q -12 4 -9 10 Q -4 14 0 14 Q 4 14 9 10 Q 12 4 3 -4 Z" />
+    {/* Bubbles inside */}
+    <circle cx="-2" cy="6" r="1.3" fill="#DC2626" stroke="none" />
+    <circle cx="3" cy="9" r="1" fill="#DC2626" stroke="none" />
+    <circle cx="0" cy="3" r="0.9" fill="#DC2626" stroke="none" />
+  </g>
+);
+const FlavorDropperGlyph = (
+  <g stroke="#DC2626" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round">
+    {/* Bottle */}
+    <rect x="-6" y="-12" width="12" height="3" />
+    <path d="M -7 -9 L 7 -9 L 7 12 Q 7 14 5 14 L -5 14 Q -7 14 -7 12 Z" />
+    {/* Liquid line */}
+    <line x1="-4" y1="3" x2="4" y2="3" />
+    {/* Drip below */}
+    <path d="M 0 14 Q -2 18 0 20 Q 2 18 0 14 Z" fill="#DC2626" stroke="none" />
+  </g>
+);
+
 const TRUST_SVGS: Record<string, React.ReactNode> = {
-  "no-color":    BAN_ICON,
-  "no-sugar":    BAN_ICON,
-  "no-chemical": BAN_ICON,
-  "no-flavor":   BAN_ICON,
+  "no-color":    <StampBadge>{FlaskGlyph}</StampBadge>,
+  "no-sugar":    <StampBadge>{SugarCubesGlyph}</StampBadge>,
+  "no-chemical": <StampBadge>{ChemicalGlyph}</StampBadge>,
+  "no-flavor":   <StampBadge>{FlavorDropperGlyph}</StampBadge>,
 };
 
 // ── Benefit-product SVG presets (keyed by iconType) ───────────────────────
@@ -223,10 +294,10 @@ function ProductCard({ product }: { product: any }) {
           </div>
         )}
         <Link href={`/products/${product.slug}`}>
-          <div className="aspect-[4/3] bg-gradient-to-b from-brand-bg/60 to-brand-bg relative overflow-hidden">
+          <div className="aspect-square bg-gradient-to-b from-brand-bg/60 to-brand-bg relative overflow-hidden">
             <Image src={img} alt={product.name} fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-contain p-5 group-hover:scale-110 transition-transform duration-700 ease-out will-change-transform" />
+              className="object-contain p-2.5 sm:p-3 group-hover:scale-110 transition-transform duration-700 ease-out will-change-transform" />
           </div>
         </Link>
       </div>
@@ -300,6 +371,16 @@ function VerticalQualitySlider({ cards }: { cards: any[] }) {
             <Sun className="w-6 h-6 text-[#E0D5B5] mx-auto mb-3" />
             <h3 className="text-[#1A3A20] text-[16px] font-black leading-tight mb-2 drop-shadow-sm">{card.title}</h3>
             <p className="text-[#4F5E48] text-[11px] font-bold leading-relaxed">{card.desc}</p>
+            {card.reportUrl && (
+              <a
+                href={card.reportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-3 text-[10px] font-black text-brand-primary uppercase tracking-[0.18em]"
+              >
+                View Report <ArrowRight className="w-3 h-3" />
+              </a>
+            )}
           </div>
           <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="w-[105%] mt-auto h-48 sm:h-56 relative -bottom-2 rounded-t-[20px] overflow-hidden drop-shadow-sm">
@@ -335,8 +416,8 @@ function TestimonialsSection({ reviews }: { reviews: any[] }) {
         </div>
         <div className="flex flex-col lg:flex-row gap-5 items-stretch">
           <div className="relative w-full lg:w-[260px] shrink-0 rounded-2xl overflow-hidden min-h-[220px] lg:min-h-0 shadow-md">
-            <Image src="https://images.unsplash.com/photo-1599599810769-bcde5a160d32?q=80&w=600&auto=format&fit=crop"
-              alt="Healthy dry fruits mix" fill sizes="(max-width: 1024px) 100vw, 260px" className="object-cover" />
+            <Image src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?q=80&w=600&auto=format&fit=crop"
+              alt="Assorted fresh fruits" fill sizes="(max-width: 1024px) 100vw, 260px" className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-5">
               <p className="text-white text-lg font-black leading-tight mb-1">Have this daily.<br /><span className="text-brand-accent">Double your energy.</span></p>
@@ -615,17 +696,17 @@ export default function HomeClient({
       {/* ── HERO SECTION ── */}
       {slides.length > 0 && (
         <section className="relative">
-          <div className="relative w-full h-[78vw] min-h-[420px] max-h-[640px] bg-[#0E1A0F] overflow-hidden">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-[21/9] bg-[#0E1A0F] overflow-hidden">
             <AnimatePresence initial={false} custom={direction} mode="popLayout">
               <motion.div key={heroIdx} custom={direction}
-                initial={{ opacity: 0, scale: 1.06 }}
-                animate={{ opacity: 1, scale: 1.04 }}
-                exit={{ opacity: 0, scale: 1.02 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
                 drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.08}
                 onDragEnd={(_, info) => { if (info.offset.x < -60) { paginate(1); resetAutoPlay(); } else if (info.offset.x > 60) { paginate(-1); resetAutoPlay(); } }}
                 className="absolute inset-0 cursor-grab active:cursor-grabbing">
-                <Image src={slides[heroIdx]?.img} alt={slides[heroIdx]?.title || "Hero banner"} fill priority={heroIdx === 0} className="object-cover animate-ken-burns" draggable={false} />
+                <Image src={slides[heroIdx]?.img} alt={slides[heroIdx]?.title || "Hero banner"} fill priority={heroIdx === 0} sizes="100vw" className="object-cover" draggable={false} />
                 {/* Editorial gradient — darker at bottom-left for copy legibility, breathes on the right */}
                 <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/40 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
@@ -678,8 +759,8 @@ export default function HomeClient({
                 {trustStrip.map((s, idx) => (
                   <motion.div key={s.label} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                     transition={{ delay: idx * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    className={`py-7 sm:py-9 px-3 sm:px-6 bg-white flex flex-col items-center justify-center gap-3 hover:bg-brand-bg/60 transition-colors cursor-default group ${idx === 0 ? "border-l-0" : ""}`}>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    className={`py-6 sm:py-8 px-3 sm:px-6 bg-white flex flex-col items-center justify-center gap-3 hover:bg-brand-bg/60 transition-colors cursor-default group ${idx === 0 ? "border-l-0" : ""}`}>
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
                       {TRUST_SVGS[s.iconType] || TRUST_SVGS["no-color"]}
                     </div>
                     <div className="text-center">
@@ -709,7 +790,7 @@ export default function HomeClient({
             </div>
             <div className="flex gap-5 overflow-x-auto no-scrollbar pb-8 -mx-4 px-4">
               {dbNewArrivals.map((p: any, i: number) => (
-                <motion.div key={p._id?.toString() || i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="shrink-0 w-[170px] sm:w-[240px]">
+                <motion.div key={p._id?.toString() || i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="shrink-0 w-[230px] sm:w-[300px]">
                   <ProductCard product={{ ...p, tag: "New" }} />
                 </motion.div>
               ))}
@@ -839,10 +920,11 @@ export default function HomeClient({
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.08),_transparent_60%)] pointer-events-none" />
             <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-8">
               <div className="max-w-2xl">
-                <p className="pj-eyebrow text-brand-accent mb-5">{bulkOrder.badge}</p>
+                <p className="inline-block bg-brand-accent text-brand-text font-black text-[11px] sm:text-[12px] uppercase tracking-[0.32em] px-4 py-1.5 rounded-full mb-5 shadow-[0_8px_20px_-6px_rgba(244,197,66,0.6)]">{bulkOrder.badge}</p>
                 <h2 className="text-white font-serif font-black tracking-tight leading-[1.1]"
                     style={{ fontSize: "clamp(1.75rem, 3vw, 2.75rem)", letterSpacing: "-0.015em" }}>
-                  {bulkOrder.title}
+                  {/* Strip emoji from legacy/seeded titles (e.g. the peanut in "Big Savings on Bulk Orders! 🥜") */}
+                  {bulkOrder.title.replace(/[\p{Extended_Pictographic}]/gu, "").trim()}
                 </h2>
                 {bulkOrder.subtitle && (
                   <p className="text-white/75 text-sm sm:text-base font-medium mt-5 leading-relaxed max-w-xl">{bulkOrder.subtitle}</p>
@@ -911,19 +993,35 @@ export default function HomeClient({
               <h2 className="pj-heading">Crafted with care</h2>
             </div>
             <div className="hidden lg:grid grid-cols-4 gap-7">
-              {dbQualityCards.map((card, idx) => (
-                <div key={card._id} className="bg-white rounded-3xl overflow-hidden flex flex-col items-center pt-10 px-6 shadow-[0_4px_24px_-12px_rgba(26,32,16,0.1)] border border-[#EAE7DD] group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_48px_-20px_rgba(121,174,111,0.2)]">
-                  <div className="text-center mb-5">
-                    <Sun className="w-6 h-6 text-[#E0D5B5] mx-auto mb-3" />
-                    <h3 className="text-[#1A3A20] text-[16px] font-black leading-tight mb-2 drop-shadow-sm">{card.title}</h3>
-                    <p className="text-[#4F5E48] text-[11px] font-bold leading-relaxed">{card.desc}</p>
-                  </div>
-                  <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 5 + idx * 0.2, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
-                    className="w-[105%] mt-auto h-52 relative -bottom-2 rounded-t-[20px] overflow-hidden drop-shadow-sm">
-                    <Image src={card.img} alt={card.alt || card.title} fill sizes="25vw" className="object-cover object-top scale-100 group-hover:scale-110 transition-transform duration-700" />
-                  </motion.div>
-                </div>
-              ))}
+              {dbQualityCards.map((card, idx) => {
+                const hasReport = Boolean(card.reportUrl);
+                const inner = (
+                  <>
+                    <div className="text-center mb-5">
+                      <Sun className="w-6 h-6 text-[#E0D5B5] mx-auto mb-3" />
+                      <h3 className="text-[#1A3A20] text-[16px] font-black leading-tight mb-2 drop-shadow-sm">{card.title}</h3>
+                      <p className="text-[#4F5E48] text-[11px] font-bold leading-relaxed">{card.desc}</p>
+                      {hasReport && (
+                        <span className="inline-flex items-center gap-1 mt-3 text-[10px] font-black text-brand-primary uppercase tracking-[0.18em]">
+                          View Report <ArrowRight className="w-3 h-3" />
+                        </span>
+                      )}
+                    </div>
+                    <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 5 + idx * 0.2, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}
+                      className="w-[105%] mt-auto h-52 relative -bottom-2 rounded-t-[20px] overflow-hidden drop-shadow-sm">
+                      <Image src={card.img} alt={card.alt || card.title} fill sizes="25vw" className="object-cover object-top scale-100 group-hover:scale-110 transition-transform duration-700" />
+                    </motion.div>
+                  </>
+                );
+                const className = "bg-white rounded-3xl overflow-hidden flex flex-col items-center pt-10 px-6 shadow-[0_4px_24px_-12px_rgba(26,32,16,0.1)] border border-[#EAE7DD] group transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_24px_48px_-20px_rgba(121,174,111,0.2)]";
+                return hasReport ? (
+                  <a key={card._id} href={card.reportUrl} target="_blank" rel="noopener noreferrer" className={className}>
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={card._id} className={className}>{inner}</div>
+                );
+              })}
             </div>
             <div className="lg:hidden relative">
               <VerticalQualitySlider cards={dbQualityCards} />

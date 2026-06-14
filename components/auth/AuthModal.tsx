@@ -20,7 +20,7 @@ export default function AuthModal() {
   const router = useRouter();
 
   const [mode, setMode] = useState<AuthMode>("login");
-  const [loginMethod, setLoginMethod] = useState<LoginMethod>("email");
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>("phone");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -36,7 +36,7 @@ export default function AuthModal() {
     } else {
       document.body.style.overflow = "";
       setMode("login");
-      setLoginMethod("email");
+      setLoginMethod("phone");
       setError("");
       setIsSuccess(false);
       setPhone("");
@@ -327,20 +327,9 @@ export default function AuthModal() {
                           </span>
                         </button>
 
-                        {/* Email | Phone OTP tabs — login only */}
+                        {/* Phone OTP | Email tabs — login only */}
                         {mode === "login" ? (
                           <div className="flex items-center gap-1 p-1 bg-brand-bg rounded-xl mb-4">
-                            <button
-                              type="button"
-                              onClick={() => { setLoginMethod("email"); setError(""); }}
-                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
-                                loginMethod === "email"
-                                  ? "bg-white text-brand-primary shadow-sm"
-                                  : "text-brand-text-muted hover:text-brand-text"
-                              }`}
-                            >
-                              <Mail className="w-3 h-3" /> Email
-                            </button>
                             <button
                               type="button"
                               onClick={() => { setLoginMethod("phone"); setError(""); }}
@@ -351,6 +340,17 @@ export default function AuthModal() {
                               }`}
                             >
                               <Smartphone className="w-3 h-3" /> Phone OTP
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setLoginMethod("email"); setError(""); }}
+                              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+                                loginMethod === "email"
+                                  ? "bg-white text-brand-primary shadow-sm"
+                                  : "text-brand-text-muted hover:text-brand-text"
+                              }`}
+                            >
+                              <Mail className="w-3 h-3" /> Email
                             </button>
                           </div>
                         ) : (

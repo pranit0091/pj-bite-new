@@ -1,16 +1,34 @@
 "use client";
 
-import { MapPin, Phone, Mail, Instagram, Send } from "lucide-react";
+import { MapPin, Phone, Mail, Instagram, Send, AlertCircle } from "lucide-react";
 import { useState } from "react";
 
 export default function ContactPage() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [form, setForm] = useState({ firstName: "", lastName: "", email: "", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("submitting");
-    // Simulate API call
-    setTimeout(() => setStatus("success"), 1500);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to send message.");
+      setStatus("success");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to send message.");
+      setStatus("error");
+    }
   };
 
   return (
@@ -98,8 +116,8 @@ export default function ContactPage() {
                 <p className="text-brand-text-muted text-lg max-w-sm mx-auto mb-10 font-medium">
                   Thank you for reaching out to PJ Bite. We'll get back to you within 24 hours.
                 </p>
-                <button 
-                  onClick={() => setStatus("idle")}
+                <button
+                  onClick={() => { setStatus("idle"); setForm({ firstName: "", lastName: "", email: "", message: "" }); }}
                   className="bg-brand-bg text-brand-text px-8 py-3 rounded-full font-bold text-sm hover:bg-brand-primary hover:text-white transition-colors duration-300 uppercase tracking-widest border border-[#E8E6E1]"
                 >
                   Send another message
@@ -110,20 +128,24 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="firstName" className="block text-[10px] font-black text-brand-text-muted uppercase tracking-[0.2em] mb-2.5">First Name</label>
-                    <input 
-                      type="text" 
-                      id="firstName" 
+                    <input
+                      type="text"
+                      id="firstName"
                       required
+                      value={form.firstName}
+                      onChange={handleChange}
                       className="w-full px-5 py-4 text-[14px] rounded-xl border border-[#E8E6E1] focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-brand-bg/50 focus:bg-white font-medium placeholder:text-brand-text-muted/50"
                       placeholder="John"
                     />
                   </div>
                   <div>
                     <label htmlFor="lastName" className="block text-[10px] font-black text-brand-text-muted uppercase tracking-[0.2em] mb-2.5">Last Name</label>
-                    <input 
-                      type="text" 
-                      id="lastName" 
+                    <input
+                      type="text"
+                      id="lastName"
                       required
+                      value={form.lastName}
+                      onChange={handleChange}
                       className="w-full px-5 py-4 text-[14px] rounded-xl border border-[#E8E6E1] focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-brand-bg/50 focus:bg-white font-medium placeholder:text-brand-text-muted/50"
                       placeholder="Doe"
                     />
@@ -132,10 +154,12 @@ export default function ContactPage() {
 
                 <div>
                   <label htmlFor="email" className="block text-[10px] font-black text-brand-text-muted uppercase tracking-[0.2em] mb-2.5">Email Address</label>
-                  <input 
-                    type="email" 
-                    id="email" 
+                  <input
+                    type="email"
+                    id="email"
                     required
+                    value={form.email}
+                    onChange={handleChange}
                     className="w-full px-5 py-4 text-[14px] rounded-xl border border-[#E8E6E1] focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-brand-bg/50 focus:bg-white font-medium placeholder:text-brand-text-muted/50"
                     placeholder="john@example.com"
                   />
@@ -143,14 +167,23 @@ export default function ContactPage() {
 
                 <div className="flex-1">
                   <label htmlFor="message" className="block text-[10px] font-black text-brand-text-muted uppercase tracking-[0.2em] mb-2.5">Your Message</label>
-                  <textarea 
-                    id="message" 
+                  <textarea
+                    id="message"
                     required
                     rows={6}
+                    value={form.message}
+                    onChange={handleChange}
                     className="w-full h-[calc(100%-2rem)] min-h-[160px] px-5 py-4 text-[14px] rounded-xl border border-[#E8E6E1] focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all bg-brand-bg/50 focus:bg-white resize-none font-medium placeholder:text-brand-text-muted/50"
                     placeholder="How can we help you?"
                   ></textarea>
                 </div>
+
+                {status === "error" && (
+                  <div className="flex items-center gap-2.5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm font-bold text-red-600">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {errorMsg}
+                  </div>
+                )}
 
                 <button 
                   type="submit" 

@@ -3,6 +3,7 @@ import Razorpay from "razorpay";
 import dbConnect from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Coupon from "@/models/Coupon";
+import StoreSettings from "@/models/StoreSettings";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID as string,
@@ -11,10 +12,10 @@ const razorpay = new Razorpay({
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, customerDetails, couponCode } = await req.json(); // items is array of {id, quantity}
+    const { items, customerDetails, couponCode, paymentMethod } = await req.json(); // items is array of {id, quantity}
 
     await dbConnect();
-    
+
     let totalAmount = 0;
     const validatedProducts = [];
 
@@ -68,7 +69,38 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const finalAmount = Math.max(totalAmount - discountApplied, 0);
+    // Pull shipping/COD/prepaid settings from the store so we can authoritatively
+    // recompute the same total the UI displays. Previously the Razorpay order
+    // was created with only (items − coupon), which silently undercharged for
+    // shipping and COD fees compared to what the user saw in checkout.
+    const settings = (await StoreSettings.findOne().lean()) as any;
+    const freeShippingThreshold = settings?.freeShippingThreshold ?? 499;
+    const shippingCost = settings?.shippingCost ?? 50;
+    const codCharge = settings?.codCharge ?? 0;
+    const prepaidDiscountPct = settings?.prepaidDiscountPercentage ?? 0;
+
+    const shippingCharge = totalAmount > 0 && totalAmount < freeShippingThreshold ? shippingCost : 0;
+    const codFee = paymentMethod === "COD" ? codCharge : 0;
+    const prepaidDiscount = paymentMethod !== "COD" && prepaidDiscountPct > 0
+      ? (totalAmount * prepaidDiscountPct) / 100
+      : 0;
+
+    const finalAmount = Math.max(
+      totalAmount + shippingCharge + codFee - discountApplied - prepaidDiscount,
+      0,
+    );
+
+    // COD path: validation-only, no Razorpay order needed. Skipping the
+    // Razorpay call here is what prevents COD from failing on "Cart validation
+    // failed" when Razorpay keys are misconfigured or temporarily unreachable.
+    if (paymentMethod === "COD") {
+      return NextResponse.json({
+        products: validatedProducts,
+        amount: Math.round(finalAmount * 100),
+        currency: "INR",
+        finalAmount,
+      });
+    }
 
     const options = {
       amount: Math.round(finalAmount * 100), // paise
@@ -83,9 +115,13 @@ export async function POST(req: NextRequest) {
       currency: order.currency,
       amount: order.amount,
       products: validatedProducts,
+      finalAmount,
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to create cart order" }, { status: 500 });
+  } catch (error: any) {
+    console.error("[CART_VALIDATE_ERROR]", error);
+    // Surface the actual stock/coupon message when possible; only fall back to
+    // the generic text for unexpected failures.
+    const message = typeof error?.message === "string" ? error.message : "Failed to create cart order";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

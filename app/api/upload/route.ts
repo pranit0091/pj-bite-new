@@ -27,8 +27,11 @@ console.log("UPLOAD_PRESET:", UPLOAD_PRESET);
     cloudinaryForm.append("upload_preset", UPLOAD_PRESET);
     cloudinaryForm.append("folder", folder);
 
+    // /auto/upload routes images to image storage and PDFs / raw files to raw
+    // storage, so the same endpoint handles quality-card images AND uploaded
+    // test-report PDFs without a separate route.
     const uploadRes = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
       { method: "POST", body: cloudinaryForm }
     );
 

@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import { Banner } from "@/models/Banner";
 
 import ProductGridCard from "@/components/products/ProductGridCard";
+import SortDropdown from "@/components/products/SortDropdown";
 
 export const revalidate = 0;
 
@@ -17,6 +18,7 @@ interface SearchParams {
   sort?: string;
   minPrice?: string;
   maxPrice?: string;
+  availability?: string; // "in_stock" | "out_of_stock"
 }
 
 async function getProducts(params: SearchParams) {
@@ -36,7 +38,7 @@ async function getProducts(params: SearchParams) {
     if (cat) {
       query.categoryId = (cat as any)._id;
     } else {
-      return { products: [], categories: [] };
+      return { products: [], categories: [], stockCounts: { inStock: 0, outOfStock: 0 } };
     }
   }
 
@@ -46,30 +48,46 @@ async function getProducts(params: SearchParams) {
     if (params.maxPrice) query.price.$lte = parseFloat(params.maxPrice);
   }
 
-  let sortOption: Record<string, any> = { createdAt: -1 };
+  if (params.availability === "in_stock") query.stock = { $gt: 0 };
+  else if (params.availability === "out_of_stock") query.stock = { $lte: 0 };
+
+  let sortOption: Record<string, any> = { name: 1 };
   if (params.sort === "price_asc") sortOption = { price: 1 };
   else if (params.sort === "price_desc") sortOption = { price: -1 };
   else if (params.sort === "popular") sortOption = { isFeatured: -1, createdAt: -1 };
+  else if (params.sort === "name_desc") sortOption = { name: -1 };
+  else if (params.sort === "newest") sortOption = { createdAt: -1 };
 
-  const [productsRaw, categoriesRaw] = await Promise.all([
+  // Stock-counts are computed ignoring the availability filter so the sidebar
+  // can show "In stock (N) / Out of stock (M)" even after a filter is applied.
+  const stockQuery = { ...query };
+  delete stockQuery.stock;
+
+  const [productsRaw, categoriesRaw, inStockCount, outOfStockCount] = await Promise.all([
     Product.find(query)
       .populate("categoryId", "name slug")
       .sort(sortOption)
       .lean(),
     Category.find({}).lean(),
+    Product.countDocuments({ ...stockQuery, stock: { $gt: 0 } }),
+    Product.countDocuments({ ...stockQuery, stock: { $lte: 0 } }),
   ]);
 
   const products = JSON.parse(JSON.stringify(productsRaw));
   const categories = JSON.parse(JSON.stringify(categoriesRaw));
 
-  return { products, categories };
+  return {
+    products,
+    categories,
+    stockCounts: { inStock: inStockCount, outOfStock: outOfStockCount },
+  };
 }
 
 export default async function ProductsListingPage(props: {
   searchParams: Promise<SearchParams>;
 }) {
   const searchParams = await props.searchParams;
-  const { products, categories } = await getProducts(searchParams);
+  const { products, categories, stockCounts } = await getProducts(searchParams);
   
   const hasFilters = searchParams.q || searchParams.category || searchParams.sort || searchParams.minPrice || searchParams.maxPrice;
   const activeCat = (categories as any[]).find((c: any) => c.slug === searchParams.category);
@@ -120,7 +138,7 @@ export default async function ProductsListingPage(props: {
           {/* ── LEFT SIDEBAR ── */}
           <aside className="hidden lg:block w-[260px] shrink-0 sticky top-28">
             <Suspense fallback={null}>
-              <ProductFilters categories={(categories as any[]).map((c: any) => ({ ...c, _id: c._id.toString() }))} />
+              <ProductFilters categories={(categories as any[]).map((c: any) => ({ ...c, _id: c._id.toString() }))} stockCounts={stockCounts} />
             </Suspense>
           </aside>
 
@@ -141,12 +159,7 @@ export default async function ProductsListingPage(props: {
                </div>
                <div className="flex items-center gap-3 text-[11px] text-brand-text font-bold">
                  <span className="hidden sm:block text-brand-text-muted uppercase tracking-[0.25em] text-[10px]">Sort</span>
-                 <select className="border border-[#EAE7DD] rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 bg-white outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/15 cursor-pointer text-brand-text text-[12px] font-bold transition-colors">
-                   <option>Alphabetically, A-Z</option>
-                   <option>Price, Low to High</option>
-                   <option>Price, High to Low</option>
-                   <option>Featured</option>
-                 </select>
+                 <SortDropdown />
                </div>
             </div>
 

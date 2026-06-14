@@ -63,6 +63,7 @@ export default async function HomePage() {
     originalPrice: (p.originalPrice as number) || undefined,
     images: (p.images as string[]) || [],
     vendorId: p.vendorId?.toString() || "",
+    stock: typeof p.stock === "number" ? p.stock : 0,
   }));
 
   const dbNewArrivals = rawNewArrivals.map((p) => ({
@@ -73,6 +74,7 @@ export default async function HomePage() {
     originalPrice: (p.originalPrice as number) || undefined,
     images: (p.images as string[]) || [],
     vendorId: p.vendorId?.toString() || "",
+    stock: typeof p.stock === "number" ? p.stock : 0,
   }));
 
   const dbFaqs = rawFaqs.map((f: any) => ({
@@ -98,6 +100,7 @@ export default async function HomePage() {
     img: c.img as string,
     alt: (c.alt as string) || "",
     order: c.order as number,
+    reportUrl: (c.reportUrl as string) || "",
   }));
 
   const dbBenefitProducts = rawBenefitProducts.map((p: any) => ({
